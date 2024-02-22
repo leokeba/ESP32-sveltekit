@@ -25,6 +25,7 @@
 #define DEFAULT_LED_STATE false
 #define OFF_STATE "OFF"
 #define ON_STATE "ON"
+#define DEFAULT_BRIGHTNESS 128
 
 #define LIGHT_SETTINGS_ENDPOINT_PATH "/rest/lightState"
 #define LIGHT_SETTINGS_SOCKET_PATH "/ws/lightState"
@@ -33,18 +34,22 @@ class LightState
 {
 public:
     bool ledOn;
+    int duty;
 
     static void read(LightState &settings, JsonObject &root)
     {
         root["led_on"] = settings.ledOn;
+        root["led_duty"] = settings.duty;
     }
 
     static StateUpdateResult update(JsonObject &root, LightState &lightState)
-    {
+    {   
         boolean newState = root["led_on"] | DEFAULT_LED_STATE;
-        if (lightState.ledOn != newState)
+        int newDuty = root["led_duty"] | DEFAULT_BRIGHTNESS;
+        if ((lightState.ledOn != newState) || (lightState.duty =! newDuty))
         {
             lightState.ledOn = newState;
+            lightState.duty = newDuty;
             return StateUpdateResult::CHANGED;
         }
         return StateUpdateResult::UNCHANGED;

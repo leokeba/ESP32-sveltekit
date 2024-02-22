@@ -11,11 +11,13 @@
 
 	type LightState = {
 		led_on: boolean;
+		led_duty: number;
 	};
 
-	let lightState: LightState = { led_on: false };
+	let lightState: LightState = { led_on: false, led_duty: 128 };
 
 	let lightOn = false;
+	let lightBrightness = 128;
 
 	async function getLightstate() {
 		try {
@@ -28,6 +30,7 @@
 			});
 			const light = await response.json();
 			lightOn = light.led_on;
+			lightBrightness = light.led_duty;
 		} catch (error) {
 			console.error('Error:', error);
 		}
@@ -71,7 +74,7 @@
 					Authorization: $page.data.features.security ? 'Bearer ' + $user.bearer_token : 'Basic',
 					'Content-Type': 'application/json'
 				},
-				body: JSON.stringify({ led_on: lightOn })
+				body: JSON.stringify({ led_on: lightOn, led_duty: lightBrightness })
 			});
 			if (response.status == 200) {
 				notifications.success('Light state updated.', 3000);
@@ -101,6 +104,7 @@
 				<label class="label cursor-pointer">
 					<span class="mr-4">Light State?</span>
 					<input type="checkbox" bind:checked={lightOn} class="checkbox checkbox-primary" />
+					<input type="range" min="0" max="255"  bind:value={lightBrightness} class="range" />
 				</label>
 			</div>
 			<div class="flex-grow" />
@@ -127,6 +131,21 @@
 					type="checkbox"
 					class="toggle toggle-primary"
 					bind:checked={lightState.led_on}
+					on:change={() => {
+						lightStateSocket.send(JSON.stringify(lightState));
+					}}
+				/>
+			</label>
+		</div>
+		<div class="form-control w-52">
+			<label class="label cursor-pointer">
+				<span class="">Light Brightness?</span>
+				<input 
+					type="range"
+					min="0" 
+					max="255" 
+					class="range"
+					bind:value={lightState.led_duty}
 					on:change={() => {
 						lightStateSocket.send(JSON.stringify(lightState));
 					}}
