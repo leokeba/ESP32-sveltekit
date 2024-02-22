@@ -58,11 +58,13 @@ public:
     static void homeAssistRead(LightState &settings, JsonObject &root)
     {
         root["state"] = settings.ledOn ? ON_STATE : OFF_STATE;
+        root["brightness"] = settings.duty;
     }
 
     static StateUpdateResult homeAssistUpdate(JsonObject &root, LightState &lightState)
     {
         String state = root["state"];
+        int brightness = root.containsKey("brightness") ? root["brightness"] : lightState.duty;
         // parse new led state
         boolean newState = false;
         if (state.equals(ON_STATE))
@@ -74,9 +76,10 @@ public:
             return StateUpdateResult::ERROR;
         }
         // change the new state, if required
-        if (lightState.ledOn != newState)
+        if ((lightState.ledOn != newState) || (lightState.duty != brightness))
         {
             lightState.ledOn = newState;
+            lightState.duty = brightness;
             return StateUpdateResult::CHANGED;
         }
         return StateUpdateResult::UNCHANGED;

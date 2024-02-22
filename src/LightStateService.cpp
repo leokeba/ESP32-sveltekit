@@ -67,8 +67,6 @@ void LightStateService::begin()
 
 void LightStateService::onConfigUpdated()
 {
-    // digitalWrite(LED_BUILTIN, _state.ledOn ? 1 : 0);
-    // Serial.println(_state.duty);
     analogWrite(LED_BUILTIN, _state.ledOn ? _state.duty : 0);
 }
 
@@ -94,7 +92,7 @@ void LightStateService::registerConfig()
     doc["cmd_t"] = "~/set";
     doc["stat_t"] = "~/state";
     doc["schema"] = "json";
-    doc["brightness"] = false;
+    doc["brightness"] = true;
 
     String payload;
     serializeJson(doc, payload);
