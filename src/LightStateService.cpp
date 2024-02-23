@@ -61,13 +61,13 @@ void LightStateService::begin()
     _httpEndpoint.begin();
     _webSocketServer.begin();
     _state.ledOn = DEFAULT_LED_STATE;
-    _state.duty = DEFAULT_BRIGHTNESS;
+    _state.brightness = DEFAULT_BRIGHTNESS;
     onConfigUpdated();
 }
 
 void LightStateService::onConfigUpdated()
 {
-    analogWrite(LED_BUILTIN, _state.ledOn ? _state.duty : 0);
+    analogWrite(LED_BUILTIN, _state.ledOn ? _state.brightness : 0);
 }
 
 void LightStateService::registerConfig()

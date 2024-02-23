@@ -11,10 +11,10 @@
 
 	type LightState = {
 		led_on: boolean;
-		led_duty: number;
+		brightness: number;
 	};
 
-	let lightState: LightState = { led_on: false, led_duty: 128 };
+	let lightState: LightState = { led_on: false, brightness: 128 };
 
 	let lightOn = false;
 	let lightBrightness = 128;
@@ -30,7 +30,7 @@
 			});
 			const light = await response.json();
 			lightOn = light.led_on;
-			lightBrightness = light.led_duty;
+			lightBrightness = light.brightness;
 		} catch (error) {
 			console.error('Error:', error);
 		}
@@ -57,6 +57,8 @@
 		const message = JSON.parse(event.data);
 		if (message.type != 'id') {
 			lightState = message;
+			// lightOn = lightState.led_on;
+			// lightBrightness = lightState.brightness;
 		}
 	};
 
@@ -74,12 +76,13 @@
 					Authorization: $page.data.features.security ? 'Bearer ' + $user.bearer_token : 'Basic',
 					'Content-Type': 'application/json'
 				},
-				body: JSON.stringify({ led_on: lightOn, led_duty: lightBrightness })
+				body: JSON.stringify({ led_on: lightOn, brightness: lightBrightness })
 			});
 			if (response.status == 200) {
 				notifications.success('Light state updated.', 3000);
 				const light = await response.json();
 				lightOn = light.led_on;
+				lightBrightness = light.brightness;
 			} else {
 				notifications.error('User not authorized.', 3000);
 			}
@@ -145,7 +148,7 @@
 					min="0" 
 					max="255" 
 					class="range"
-					bind:value={lightState.led_duty}
+					bind:value={lightState.brightness}
 					on:change={() => {
 						lightStateSocket.send(JSON.stringify(lightState));
 					}}

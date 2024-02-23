@@ -34,22 +34,22 @@ class LightState
 {
 public:
     bool ledOn;
-    int duty;
+    int brightness;
 
     static void read(LightState &settings, JsonObject &root)
     {
         root["led_on"] = settings.ledOn;
-        root["led_duty"] = settings.duty;
+        root["brightness"] = settings.brightness;
     }
 
     static StateUpdateResult update(JsonObject &root, LightState &lightState)
     {   
         boolean newState = root["led_on"] | DEFAULT_LED_STATE;
-        int newDuty = root["led_duty"] | DEFAULT_BRIGHTNESS;
-        if ((lightState.ledOn != newState) || (lightState.duty =! newDuty))
+        int newBrightness = root.containsKey("brightness") ? root["brightness"] : lightState.brightness;
+        if ((lightState.ledOn != newState) || abs(lightState.brightness-newBrightness) > 0)
         {
             lightState.ledOn = newState;
-            lightState.duty = newDuty;
+            lightState.brightness = newBrightness;
             return StateUpdateResult::CHANGED;
         }
         return StateUpdateResult::UNCHANGED;
@@ -58,13 +58,13 @@ public:
     static void homeAssistRead(LightState &settings, JsonObject &root)
     {
         root["state"] = settings.ledOn ? ON_STATE : OFF_STATE;
-        root["brightness"] = settings.duty;
+        root["brightness"] = settings.brightness;
     }
 
     static StateUpdateResult homeAssistUpdate(JsonObject &root, LightState &lightState)
     {
         String state = root["state"];
-        int brightness = root.containsKey("brightness") ? root["brightness"] : lightState.duty;
+        int newBrightness = root.containsKey("brightness") ? root["brightness"] : lightState.brightness;
         // parse new led state
         boolean newState = false;
         if (state.equals(ON_STATE))
@@ -76,10 +76,10 @@ public:
             return StateUpdateResult::ERROR;
         }
         // change the new state, if required
-        if ((lightState.ledOn != newState) || (lightState.duty != brightness))
+        if ((lightState.ledOn != newState) || (lightState.brightness != newBrightness))
         {
             lightState.ledOn = newState;
-            lightState.duty = brightness;
+            lightState.brightness = newBrightness;
             return StateUpdateResult::CHANGED;
         }
         return StateUpdateResult::UNCHANGED;
