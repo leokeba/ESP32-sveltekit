@@ -57,8 +57,6 @@
 		const message = JSON.parse(event.data);
 		if (message.type != 'id') {
 			lightState = message;
-			// lightOn = lightState.led_on;
-			// lightBrightness = lightState.brightness;
 		}
 	};
 
@@ -107,7 +105,6 @@
 				<label class="label cursor-pointer">
 					<span class="mr-4">Light State?</span>
 					<input type="checkbox" bind:checked={lightOn} class="checkbox checkbox-primary" />
-					<input type="range" min="0" max="255"  bind:value={lightBrightness} class="range" />
 				</label>
 			</div>
 			<div class="flex-grow" />
@@ -117,6 +114,12 @@
 			<button class="btn btn-primary inline-flex items-center" on:click={getLightstate}
 				><Reload class="mr-2 h-5 w-5" /><span>Reload</span></button
 			>
+			<div class="form-control flex-grow">
+				<label class="label cursor-pointer">
+					<span class="mr-4">Brightness</span>
+					<input type="range" min="0" max="255"  bind:value={lightBrightness} class="range" />
+				</label>
+			</div>
 		</div>
 		<div class="divider" />
 		<h1 class="text-xl font-semibold">Websocket Example</h1>
@@ -140,9 +143,9 @@
 				/>
 			</label>
 		</div>
-		<div class="form-control w-52">
+		<div class="form-control">
 			<label class="label cursor-pointer">
-				<span class="">Light Brightness?</span>
+				<span class="mr-4">Brightness </span>
 				<input 
 					type="range"
 					min="0" 
