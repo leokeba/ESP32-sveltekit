@@ -31,6 +31,14 @@ LightStateService lightStateService = LightStateService(&server,
                                                         esp32sveltekit.getMqttClient(),
                                                         &lightMqttSettingsService);
 
+#include <ArtnetWiFi.h>
+
+ArtnetWiFiReceiver artnet;
+uint16_t universe1 = 1; // 0 - 32767
+uint8_t net = 0;        // 0 - 127
+uint8_t subnet = 0;     // 0 - 15
+uint8_t universe2 = 2;  // 0 - 15
+
 void setup()
 {
     // start serial and filesystem
@@ -43,10 +51,31 @@ void setup()
     lightStateService.begin();
     // start the light service
     lightMqttSettingsService.begin();
+
+    artnet.begin();
+
+    // if Artnet packet comes to this universe, this function (lambda) is called
+    artnet.subscribeArtDmxUniverse(universe1, [&](const uint8_t *data, uint16_t size, const ArtDmxMetadata &metadata, const ArtNetRemoteInfo &remote) {
+        Serial.print("lambda : artnet data from ");
+        Serial.print(remote.ip);
+        Serial.print(":");
+        Serial.print(remote.port);
+        Serial.print(", universe = ");
+        Serial.print(universe1);
+        Serial.print(", size = ");
+        Serial.print(size);
+        Serial.print(") :");
+        for (size_t i = 0; i < size; ++i) {
+            Serial.print(data[i]);
+            Serial.print(",");
+        }
+        Serial.println();
+    });
 }
 
 void loop()
 {
     // Delete Arduino loop task, as it is not needed in this example
-    vTaskDelete(NULL);
+    // vTaskDelete(NULL);
+    artnet.parse();
 }
