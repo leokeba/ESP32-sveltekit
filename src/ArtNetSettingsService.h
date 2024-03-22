@@ -21,46 +21,12 @@
 #include <SettingValue.h>
 #include <WiFi.h>
 
-#ifndef FACTORY_MQTT_ENABLED
-#define FACTORY_MQTT_ENABLED false
+#ifndef FACTORY_ARTNET_ENABLED
+#define FACTORY_ARTNET_ENABLED false
 #endif
 
-#ifndef FACTORY_MQTT_HOST
-#define FACTORY_MQTT_HOST "test.mosquitto.org"
-#endif
-
-#ifndef FACTORY_MQTT_PORT
-#define FACTORY_MQTT_PORT 1883
-#endif
-
-#ifndef FACTORY_MQTT_USERNAME
-#define FACTORY_MQTT_USERNAME ""
-#endif
-
-#ifndef FACTORY_MQTT_PASSWORD
-#define FACTORY_MQTT_PASSWORD ""
-#endif
-
-#ifndef FACTORY_MQTT_CLIENT_ID
-#define FACTORY_MQTT_CLIENT_ID "#{platform}-#{unique_id}"
-#endif
-
-#ifndef FACTORY_MQTT_KEEP_ALIVE
-#define FACTORY_MQTT_KEEP_ALIVE 16
-#endif
-
-#ifndef FACTORY_MQTT_CLEAN_SESSION
-#define FACTORY_MQTT_CLEAN_SESSION true
-#endif
-
-#ifndef FACTORY_MQTT_MAX_TOPIC_LENGTH
-#define FACTORY_MQTT_MAX_TOPIC_LENGTH 128
-#endif
-
-#define MQTT_SETTINGS_FILE "/config/mqttSettings.json"
-#define MQTT_SETTINGS_SERVICE_PATH "/rest/mqttSettings"
-
-#define MQTT_RECONNECTION_DELAY 5000
+#define ARTNET_SETTINGS_FILE "/config/mqttSettings.json"
+#define ARTNET_SETTINGS_SERVICE_PATH "/rest/mqttSettings"
 
 class ArtNetSettings
 {
@@ -93,13 +59,7 @@ public:
 
     static StateUpdateResult update(JsonObject &root, ArtNetSettings &settings)
     {
-        settings.enabled = root["enabled"] | FACTORY_MQTT_ENABLED;
-        settings.uri = root["uri"] | FACTORY_MQTT_URI;
-        settings.username = root["username"] | SettingValue::format(FACTORY_MQTT_USERNAME);
-        settings.password = root["password"] | FACTORY_MQTT_PASSWORD;
-        settings.clientId = root["client_id"] | SettingValue::format(FACTORY_MQTT_CLIENT_ID);
-        settings.keepAlive = root["keep_alive"] | FACTORY_MQTT_KEEP_ALIVE;
-        settings.cleanSession = root["clean_session"] | FACTORY_MQTT_CLEAN_SESSION;
+        settings.enabled = root["enabled"] | FACTORY_ARTNET_ENABLED;
         return StateUpdateResult::CHANGED;
     }
 };

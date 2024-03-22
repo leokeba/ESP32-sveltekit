@@ -22,17 +22,17 @@ ArtNetStatus::ArtNetStatus(PsychicHttpServer *server, ArtNetSettingsService *art
 
 void ArtNetStatus::begin()
 {
-    _server->on(MQTT_STATUS_SERVICE_PATH,
+    _server->on(ARTNET_STATUS_SERVICE_PATH,
                 HTTP_GET,
                 _securityManager->wrapRequest(std::bind(&ArtNetStatus::artNetStatus, this, std::placeholders::_1),
                                               AuthenticationPredicates::IS_AUTHENTICATED));
 
-    ESP_LOGV("ArtNetStatus", "Registered GET endpoint: %s", MQTT_STATUS_SERVICE_PATH);
+    ESP_LOGV("ArtNetStatus", "Registered GET endpoint: %s", ARTNET_STATUS_SERVICE_PATH);
 }
 
 esp_err_t ArtNetStatus::artNetStatus(PsychicRequest *request)
 {
-    PsychicJsonResponse response = PsychicJsonResponse(request, false, MAX_MQTT_STATUS_SIZE);
+    PsychicJsonResponse response = PsychicJsonResponse(request, false, MAX_ARTNET_STATUS_SIZE);
     JsonObject root = response.getRoot();
 
     root["enabled"] = _artNetSettingsService->isEnabled();

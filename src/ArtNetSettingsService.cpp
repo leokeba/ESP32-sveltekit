@@ -40,8 +40,8 @@ static char *retainCstr(const char *cstr, char **ptr)
 
 ArtNetSettingsService::ArtNetSettingsService(PsychicHttpServer *server, FS *fs, SecurityManager *securityManager) : _server(server),
                                                                                                                 _securityManager(securityManager),
-                                                                                                                _httpEndpoint(ArtNetSettings::read, ArtNetSettings::update, this, server, MQTT_SETTINGS_SERVICE_PATH, securityManager),
-                                                                                                                _fsPersistence(ArtNetSettings::read, ArtNetSettings::update, this, fs, MQTT_SETTINGS_FILE),
+                                                                                                                _httpEndpoint(ArtNetSettings::read, ArtNetSettings::update, this, server, ARTNET_SETTINGS_SERVICE_PATH, securityManager),
+                                                                                                                _fsPersistence(ArtNetSettings::read, ArtNetSettings::update, this, fs, ARTNET_SETTINGS_FILE),
                                                                                                                 _retainedHost(nullptr),
                                                                                                                 _retainedClientId(nullptr),
                                                                                                                 _retainedUsername(nullptr),
@@ -79,7 +79,7 @@ void ArtNetSettingsService::loop()
 {
     if (_reconfigureArtNet)
     {
-        // reconfigure MQTT client
+        // reconfigure ARTNET client
         configureArtNet();
 
         // clear the reconnection flags
@@ -94,7 +94,7 @@ bool ArtNetSettingsService::isEnabled()
 
 bool ArtNetSettingsService::isConnected()
 {
-        // return _artNetClient.connected();
+        return true;
 }
 
 const char *ArtNetSettingsService::getClientId()
@@ -110,27 +110,27 @@ String ArtNetSettingsService::getLastError()
 
 void ArtNetSettingsService::onArtNetConnect(bool sessionPresent)
 {
-        // ESP_LOGI("MQTT", "Connected to MQTT: %s", _artNetClient.getArtNetConfig()->uri);
+        // ESP_LOGI("ARTNET", "Connected to ARTNET: %s", _artNetClient.getArtNetConfig()->uri);
 #ifdef SERIAL_INFO
-        // Serial.printf("Connected to MQTT: %s\n", _artNetClient.getArtNetConfig()->uri);
+        // Serial.printf("Connected to ARTNET: %s\n", _artNetClient.getArtNetConfig()->uri);
 #endif
     _lastError = "None";
 }
 
 void ArtNetSettingsService::onArtNetDisconnect(bool sessionPresent)
 {
-    ESP_LOGI("MQTT", "Disconnected from MQTT.");
+    ESP_LOGI("ARTNET", "Disconnected from ARTNET.");
 #ifdef SERIAL_INFO
-    Serial.println("Disconnected from MQTT.");
+    Serial.println("Disconnected from ARTNET.");
 #endif
 }
 
 // void ArtNetSettingsService::onArtNetError(esp_artNet_error_codes_t error)
 // {
-//     if (error.error_type == MQTT_ERROR_TYPE_TCP_TRANSPORT)
+//     if (error.error_type == ARTNET_ERROR_TYPE_TCP_TRANSPORT)
 //     {
 //         _lastError = strerror(error.esp_transport_sock_errno);
-//         ESP_LOGE("MQTT", "MQTT TCP error: %s", _lastError.c_str());
+//         ESP_LOGE("ARTNET", "ARTNET TCP error: %s", _lastError.c_str());
 //     }
 // }
 
@@ -143,7 +143,7 @@ void ArtNetSettingsService::onStationModeGotIP(WiFiEvent_t event, WiFiEventInfo_
 {
     if (_state.enabled)
     {
-        ESP_LOGI("MQTT", "WiFi connection established, starting MQTT client.");
+        ESP_LOGI("ARTNET", "WiFi connection established, starting ARTNET client.");
         onConfigUpdated();
     }
 }
@@ -152,7 +152,7 @@ void ArtNetSettingsService::onStationModeDisconnected(WiFiEvent_t event, WiFiEve
 {
     if (_state.enabled)
     {
-        ESP_LOGI("MQTT", "WiFi connection dropped, stopping MQTT client.");
+        ESP_LOGI("ARTNET", "WiFi connection dropped, stopping ARTNET client.");
         onConfigUpdated();
     }
 }
@@ -162,11 +162,11 @@ void ArtNetSettingsService::configureArtNet()
     // disconnect if currently connected
         // _artNetClient.disconnect();
 
-    // only connect if WiFi is connected and MQTT is enabled
+    // only connect if WiFi is connected and ARTNET is enabled
     if (_state.enabled && WiFi.isConnected())
     {
 #ifdef SERIAL_INFO
-        Serial.println("Connecting to MQTT...");
+        Serial.println("Connecting to ARTNET...");
 #endif
             // _artNetClient.setServer(retainCstr(_state.uri.c_str(), &_retainedHost));
         if (_state.username.length() > 0)

@@ -22,8 +22,8 @@
 #include <PsychicHttp.h>
 #include <SecurityManager.h>
 
-#define MAX_MQTT_STATUS_SIZE 1024
-#define MQTT_STATUS_SERVICE_PATH "/rest/artNetStatus"
+#define MAX_ARTNET_STATUS_SIZE 1024
+#define ARTNET_STATUS_SERVICE_PATH "/rest/artNetStatus"
 
 class ArtNetStatus
 {
