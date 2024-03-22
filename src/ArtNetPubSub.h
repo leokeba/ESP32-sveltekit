@@ -17,145 +17,52 @@
 
 #include <StatefulService.h>
 
-#define MQTT_ORIGIN_ID "mqtt"
+#include <ArtnetWiFi.h>
 
-template <class T>
 class ArtNetPubSub
 {
 public:
-    ArtNetPubSub(JsonStateReader<T> stateReader,
-               JsonStateUpdater<T> stateUpdater,
-               StatefulService<T> *statefulService,
-               const String &pubTopic = "",
-               const String &subTopic = "",
-               bool retain = false,
-               size_t bufferSize = DEFAULT_BUFFER_SIZE) : _stateReader(stateReader),
-                                                          _stateUpdater(stateUpdater),
-                                                          _statefulService(statefulService),
-                                                          _mqttClient(mqttClient),
-                                                          _pubTopic(pubTopic),
-                                                          _subTopic(subTopic),
-                                                          _retain(retain),
-                                                          _bufferSize(bufferSize)
+    ArtNetPubSub(ArtnetWiFiReceiver *artNetReceiver) : _artNetReceiver(artNetReceiver)
 
     {
-        _statefulService->addUpdateHandler([&](const String &originId)
-                                           { publish(); },
-                                           false);
+        // _statefulService->addUpdateHandler([&](const String &originId)
+        //                                    { publish(); },
+        //                                    false);
 
-        _mqttClient->onConnect(std::bind(&ArtNetPubSub::onConnect, this));
-
-        _mqttClient->onMessage(std::bind(&ArtNetPubSub::onArtNetMessage,
-                                         this,
-                                         std::placeholders::_1,
-                                         std::placeholders::_2,
-                                         std::placeholders::_3,
-                                         std::placeholders::_4,
-                                         std::placeholders::_5));
     }
 
-public:
-    void configureTopics(const String &pubTopic, const String &subTopic)
-    {
-        setSubTopic(subTopic);
-        setPubTopic(pubTopic);
+    void begin() {
+
+        _artNetReceiver->begin();
+
+        // if Artnet packet comes to this universe, this function (lambda) is called
+        _artNetReceiver->subscribeArtDmxUniverse(1, [&](const uint8_t *data, uint16_t size, const ArtDmxMetadata &metadata, const ArtNetRemoteInfo &remote) {
+            recvCallback(data, size, metadata, remote);
+        });
     }
 
-    void setSubTopic(const String &subTopic)
-    {
-        if (!_subTopic.equals(subTopic))
-        {
-            // unsubscribe from the existing topic if one was set
-            if (_subTopic.length() > 0)
-            {
-                _mqttClient->unsubscribe(_subTopic.c_str());
-            }
-            // set the new topic and re-configure the subscription
-            _subTopic = subTopic;
-            subscribe();
+    void recvCallback(const uint8_t *data, uint16_t size, const ArtDmxMetadata &metadata, const ArtNetRemoteInfo &remote) {
+        Serial.print("lambda : artnet data from ");
+        Serial.print(remote.ip);
+        Serial.print(":");
+        Serial.print(remote.port);
+        Serial.print(", size = ");
+        Serial.print(size);
+        Serial.print(") :");
+        for (size_t i = 0; i < size; ++i) {
+            Serial.print(data[i]);
+            Serial.print(",");
         }
+        Serial.println();
     }
 
-    void setPubTopic(const String &pubTopic)
-    {
-        _pubTopic = pubTopic;
-        publish();
-    }
-
-    void setRetain(const bool retain)
-    {
-        _retain = retain;
-        publish();
-    }
-
-    void publish()
-    {
-        if (_pubTopic.length() > 0 && _mqttClient->connected())
-        {
-            // serialize to json doc
-            DynamicJsonDocument json(_bufferSize);
-            JsonObject jsonObject = json.to<JsonObject>();
-            _statefulService->read(jsonObject, _stateReader);
-
-            // serialize to string
-            String payload;
-            serializeJson(json, payload);
-
-            // publish the payload
-            _mqttClient->publish(_pubTopic.c_str(), 0, _retain, payload.c_str());
-        }
-    }
-
-    PsychicArtNetClient *getArtNetClient()
-    {
-        return _mqttClient;
+    void loop() {
+        _artNetReceiver->parse();
     }
 
 protected:
-    StatefulService<T> *_statefulService;
-    PsychicArtNetClient *_mqttClient;
+    ArtnetWiFiReceiver *_artNetReceiver;
     int _bufferSize;
-    JsonStateUpdater<T> _stateUpdater;
-    JsonStateReader<T> _stateReader;
-    String _subTopic;
-    String _pubTopic;
-    bool _retain;
-
-    void onArtNetMessage(char *topic,
-                       char *payload,
-                       int retain,
-                       int qos,
-                       bool dup)
-    {
-        // we only care about the topic we are watching in this class
-        if (strcmp(_subTopic.c_str(), topic))
-        {
-            return;
-        }
-
-        // deserialize from string
-        DynamicJsonDocument json(_bufferSize);
-        DeserializationError error = deserializeJson(json, payload);
-        if (!error && json.is<JsonObject>())
-        {
-            JsonObject jsonObject = json.as<JsonObject>();
-            _statefulService->update(jsonObject, _stateUpdater, MQTT_ORIGIN_ID);
-        }
-    }
-
-    void onConnect()
-    {
-        subscribe();
-        publish();
-    }
-
-    void subscribe()
-    {
-        if (_subTopic.length() > 0)
-        {
-            _mqttClient->subscribe(_subTopic.c_str(), 2);
-        }
-    }
 };
 
 #endif // end ArtNetPubSub
