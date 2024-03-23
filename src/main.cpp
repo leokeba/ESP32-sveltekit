@@ -51,6 +51,8 @@ void setup()
     // start the light service
     lightMqttSettingsService.begin();
 
+    artNetReceiver.begin();
+
     artNetDataService.begin();
 }
 

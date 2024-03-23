@@ -12,16 +12,26 @@ class ArtNetFrame
 public:
     uint8_t data[512] = {};
     uint16_t size = 512;
+    
     static void read(ArtNetFrame &settings, JsonObject &root)
     {
         std::string arrayStr = std::string((char *)settings.data, settings.size);
         root["arrayStr"] = arrayStr;
+        root["size"] = settings.size;
+    }
+
+    static void readArtNet(DmxFrame &data, JsonObject &root) {
+        std::string arrayStr = std::string((char *)data.data, data.size);
+        root["arrayStr"] = arrayStr;
+        root["size"] = data.size;
+        // serializeJson(root, Serial);
     }
 
     static StateUpdateResult update(JsonObject &root, ArtNetFrame &frame)
     {
-        std::string arrayStr = root["data"];
+        std::string arrayStr = root["arrayStr"];
         uint16_t size = root["size"];
+        frame.size = size;
         for (int i = 0; i < size; i++) {
             frame.data[i] = (uint8_t) arrayStr[i];
         }
