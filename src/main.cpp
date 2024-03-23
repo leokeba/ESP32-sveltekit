@@ -16,7 +16,7 @@
 #include <LightMqttSettingsService.h>
 #include <LightStateService.h>
 #include <PsychicHttpServer.h>
-#include <ArtNetPubSub.h>
+#include <ArtNetDataService.h>
 
 #define SERIAL_BAUD_RATE 115200
 
@@ -34,7 +34,9 @@ LightStateService lightStateService = LightStateService(&server,
 
 ArtnetWiFiReceiver artNetReceiver;
 
-ArtNetPubSub artNetPubSub = ArtNetPubSub(&artNetReceiver);
+ArtNetDataService artNetDataService = ArtNetDataService(&server,
+                                                        esp32sveltekit.getSecurityManager(),
+                                                        &artNetReceiver);
 
 void setup()
 {
@@ -49,12 +51,12 @@ void setup()
     // start the light service
     lightMqttSettingsService.begin();
 
-    artNetPubSub.begin();
+    artNetDataService.begin();
 }
 
 void loop()
 {
     // Delete Arduino loop task, as it is not needed in this example
     // vTaskDelete(NULL);
-    artNetPubSub.loop();
+    artNetDataService.loop();
 }

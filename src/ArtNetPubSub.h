@@ -1,34 +1,30 @@
 #ifndef ArtNetPubSub_h
 #define ArtNetPubSub_h
 
-/**
- *   ESP32 SvelteKit
- *
- *   A simple, secure and extensible framework for IoT projects for ESP32 platforms
- *   with responsive Sveltekit front-end built with TailwindCSS and DaisyUI.
- *   https://github.com/theelims/ESP32-sveltekit
- *
- *   Copyright (C) 2018 - 2023 rjwats
- *   Copyright (C) 2023 - 2024 theelims
- *
- *   All Rights Reserved. This software may be modified and distributed under
- *   the terms of the LGPL v3 license. See the LICENSE file for details.
- **/
-
 #include <StatefulService.h>
+#include <HttpEndpoint.h>
 
 #include <ArtnetWiFi.h>
+#include <ArtNetDataService.h>
 
+#define ARTNET_DATA_ENDPOINT_PATH "/rest/artNetData"
+
+template <class T>
 class ArtNetPubSub
 {
 public:
-    ArtNetPubSub(ArtnetWiFiReceiver *artNetReceiver) : _artNetReceiver(artNetReceiver)
+    ArtNetPubSub(JsonStateReader<T> stateReader,
+               JsonStateUpdater<T> stateUpdater,
+               StatefulService<T> *statefulService,
+               ArtnetWiFiReceiver *artNetReceiver) :    _stateReader(stateReader),
+                                                        _stateUpdater(stateUpdater),
+                                                        _statefulService(statefulService),
+                                                        _artNetReceiver(artNetReceiver)
 
     {
         // _statefulService->addUpdateHandler([&](const String &originId)
         //                                    { publish(); },
         //                                    false);
-
     }
 
     void begin() {
@@ -42,6 +38,8 @@ public:
     }
 
     void recvCallback(const uint8_t *data, uint16_t size, const ArtDmxMetadata &metadata, const ArtNetRemoteInfo &remote) {
+        uint8_t frameData[512];
+        std::copy(data, data + size, frameData);
         Serial.print("lambda : artnet data from ");
         Serial.print(remote.ip);
         Serial.print(":");
@@ -61,8 +59,10 @@ public:
     }
 
 protected:
+    StatefulService<T> *_statefulService;
+    JsonStateUpdater<T> _stateUpdater;
+    JsonStateReader<T> _stateReader;
     ArtnetWiFiReceiver *_artNetReceiver;
-    int _bufferSize;
 };
 
 #endif // end ArtNetPubSub
