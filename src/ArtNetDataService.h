@@ -10,21 +10,20 @@
 class ArtNetFrame
 {
 public:
-    uint8_t data[512];
+    uint8_t data[512] = {};
+    uint16_t size = 512;
     static void read(ArtNetFrame &settings, JsonObject &root)
     {
-        
-        JsonArray array = root["data"].to<JsonArray>();
-        for (int i = 0; i < 512; i++) {
-            array.add(settings.data[i]);
-        }
+        std::string arrayStr = std::string((char *)settings.data, settings.size);
+        root["arrayStr"] = arrayStr;
     }
 
     static StateUpdateResult update(JsonObject &root, ArtNetFrame &frame)
     {
-        JsonArray newData = root["data"];
-        for (int i = 0; i < 512; i++) {
-            frame.data[i] = newData[i];
+        std::string arrayStr = root["data"];
+        uint16_t size = root["size"];
+        for (int i = 0; i < size; i++) {
+            frame.data[i] = (uint8_t) arrayStr[i];
         }
         return StateUpdateResult::CHANGED;
     }

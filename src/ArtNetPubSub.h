@@ -38,20 +38,27 @@ public:
     }
 
     void recvCallback(const uint8_t *data, uint16_t size, const ArtDmxMetadata &metadata, const ArtNetRemoteInfo &remote) {
-        uint8_t frameData[512];
-        std::copy(data, data + size, frameData);
-        Serial.print("lambda : artnet data from ");
-        Serial.print(remote.ip);
-        Serial.print(":");
-        Serial.print(remote.port);
-        Serial.print(", size = ");
-        Serial.print(size);
-        Serial.print(") :");
-        for (size_t i = 0; i < size; ++i) {
-            Serial.print(data[i]);
-            Serial.print(",");
+        // Serial.print("lambda : artnet data from ");
+        // Serial.print(remote.ip);
+        // Serial.print(":");
+        // Serial.print(remote.port);
+        // Serial.print(", size = ");
+        // Serial.print(size);
+        // Serial.print(") :");
+        // for (size_t i = 0; i < size; ++i) {
+        //     Serial.print(data[i]);
+        //     Serial.print(",");
+        // }
+        // Serial.println();
+        std::string arrayStr = std::string((char *)data, size);
+        DynamicJsonDocument json(size*6+64);
+        json["data"] = arrayStr;
+        json["size"] = size;
+        if (json.is<JsonObject>())
+        {
+            JsonObject jsonObject = json.as<JsonObject>();
+            _statefulService->update(jsonObject, _stateUpdater, "artnet");
         }
-        Serial.println();
     }
 
     void loop() {
