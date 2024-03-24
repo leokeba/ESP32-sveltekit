@@ -21,6 +21,7 @@
 #include <MqttPubSub.h>
 #include <WebSocketServer.h>
 // #include <WebSocketClient.h>
+#include <ArtNetPubSub.h>
 
 #define DEFAULT_LED_STATE false
 #define OFF_STATE "OFF"
@@ -40,6 +41,13 @@ public:
     {
         root["led_on"] = settings.ledOn;
         root["brightness"] = settings.brightness;
+    }
+    
+    static void readArtNet(DmxFrame &data, JsonObject &root) {
+        std::string arrayStr = std::string((char *)data.data, data.size);
+        root["arrayStr"] = arrayStr;
+        root["size"] = data.size;
+        serializeJson(root, Serial);
     }
 
     static StateUpdateResult update(JsonObject &root, LightState &lightState)
@@ -84,6 +92,11 @@ public:
         }
         return StateUpdateResult::UNCHANGED;
     }
+
+    static void dmxRead(DmxFrame &data, JsonObject &root) {
+        // root["brightness"] = data.data[1];
+        // root["state"] = data.data[0] > 127;
+    }
 };
 
 class LightStateService : public StatefulService<LightState>
@@ -92,7 +105,8 @@ public:
     LightStateService(PsychicHttpServer *server,
                       SecurityManager *securityManager,
                       PsychicMqttClient *mqttClient,
-                      LightMqttSettingsService *lightMqttSettingsService);
+                      LightMqttSettingsService *lightMqttSettingsService,
+                      ArtnetWiFiReceiver *artNetReceiver);
     void begin();
 
 private:
@@ -100,6 +114,8 @@ private:
     MqttPubSub<LightState> _mqttPubSub;
     WebSocketServer<LightState> _webSocketServer;
     //  WebSocketClient<LightState> _webSocketClient;
+    ArtNetPubSub<LightState> _artNetPubSub;
+    ArtnetWiFiReceiver *_artNetReceiver;
     PsychicMqttClient *_mqttClient;
     LightMqttSettingsService *_lightMqttSettingsService;
 

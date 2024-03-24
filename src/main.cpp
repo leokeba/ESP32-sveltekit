@@ -16,7 +16,7 @@
 #include <LightMqttSettingsService.h>
 #include <LightStateService.h>
 #include <PsychicHttpServer.h>
-#include <ArtNetDataService.h>
+// #include <ArtNetDataService.h>
 
 #define SERIAL_BAUD_RATE 115200
 
@@ -27,16 +27,19 @@ ESP32SvelteKit esp32sveltekit(&server, 120);
 LightMqttSettingsService lightMqttSettingsService =
     LightMqttSettingsService(&server, esp32sveltekit.getFS(), esp32sveltekit.getSecurityManager());
 
-LightStateService lightStateService = LightStateService(&server,
-                                                        esp32sveltekit.getSecurityManager(),
-                                                        esp32sveltekit.getMqttClient(),
-                                                        &lightMqttSettingsService);
 
 ArtnetWiFiReceiver artNetReceiver;
 
-ArtNetDataService artNetDataService = ArtNetDataService(&server,
+LightStateService lightStateService = LightStateService(&server,
                                                         esp32sveltekit.getSecurityManager(),
+                                                        esp32sveltekit.getMqttClient(),
+                                                        &lightMqttSettingsService,
                                                         &artNetReceiver);
+
+
+// ArtNetDataService artNetDataService = ArtNetDataService(&server,
+//                                                         esp32sveltekit.getSecurityManager(),
+//                                                         &artNetReceiver);
 
 void setup()
 {
@@ -46,19 +49,22 @@ void setup()
     // start ESP32-SvelteKit
     esp32sveltekit.begin();
 
+    artNetReceiver.begin();
+
     // load the initial light settings
     lightStateService.begin();
     // start the light service
     lightMqttSettingsService.begin();
 
-    artNetReceiver.begin();
 
-    artNetDataService.begin();
+    // artNetDataService.begin();
 }
 
 void loop()
 {
     // Delete Arduino loop task, as it is not needed in this example
     // vTaskDelete(NULL);
-    artNetDataService.loop();
+    // artNetDataService.loop();
+    // lightStateService.loop();
+    artNetReceiver.parse();
 }

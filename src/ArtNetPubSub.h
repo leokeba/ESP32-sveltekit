@@ -5,7 +5,6 @@
 #include <HttpEndpoint.h>
 
 #include <ArtnetWiFi.h>
-#include <ArtNetDataService.h>
 
 #define ARTNET_DATA_ENDPOINT_PATH "/rest/artNetData"
 
@@ -49,24 +48,10 @@ public:
     }
 
     void recvCallback(const uint8_t *data, uint16_t size, const ArtDmxMetadata &metadata, const ArtNetRemoteInfo &remote) {
-        // Serial.print("lambda : artnet data from ");
-        // Serial.print(remote.ip);
-        // Serial.print(":");
-        // Serial.print(remote.port);
-        // Serial.print(", size = ");
-        // Serial.print(size);
-        // Serial.print(") :");
-        // for (size_t i = 0; i < size; ++i) {
-        //     Serial.print(data[i]);
-        //     Serial.print(",");
-        // }
-        // Serial.println();
         const uint16_t end = min(size, uint16_t(address+length));
         uint8_t newData[length] = {};
-        // ArtNetData artNetData;
         for (int i = address; i < end; i++) {
             newData[i-address] = data[i];
-            // artNetData.push_back(data[i]);
         }
         DmxFrame dmxFrame = {data, length};
         DynamicJsonDocument json(4096);
@@ -74,14 +59,6 @@ public:
         _artNetReader(dmxFrame, jsonObject);
         // serializeJson(json, Serial);
         _statefulService->update(jsonObject, _stateUpdater, "artnet");
-    }
-
-    DynamicJsonDocument stringFromFrame(const uint8_t *data, const uint16_t size) {
-        std::string arrayStr = std::string((char *)data, size);
-        DynamicJsonDocument json(size*6+64);
-        json["data"] = arrayStr;
-        json["size"] = size;
-        return json;
     }
 
     void loop() {

@@ -17,23 +17,25 @@
 LightStateService::LightStateService(PsychicHttpServer *server,
                                      SecurityManager *securityManager,
                                      PsychicMqttClient *mqttClient,
-                                     LightMqttSettingsService *lightMqttSettingsService) : _httpEndpoint(LightState::read,
+                                     LightMqttSettingsService *lightMqttSettingsService,
+                                     ArtnetWiFiReceiver *artNetReceiver) :                  _httpEndpoint(LightState::read,
                                                                                                          LightState::update,
                                                                                                          this,
                                                                                                          server,
                                                                                                          LIGHT_SETTINGS_ENDPOINT_PATH,
                                                                                                          securityManager,
                                                                                                          AuthenticationPredicates::IS_AUTHENTICATED),
-                                                                                           _mqttPubSub(LightState::homeAssistRead, LightState::homeAssistUpdate, this, mqttClient),
-                                                                                           _webSocketServer(LightState::read,
-                                                                                                            LightState::update,
-                                                                                                            this,
-                                                                                                            server,
-                                                                                                            LIGHT_SETTINGS_SOCKET_PATH,
-                                                                                                            securityManager,
-                                                                                                            AuthenticationPredicates::IS_AUTHENTICATED),
-                                                                                           _mqttClient(mqttClient),
-                                                                                           _lightMqttSettingsService(lightMqttSettingsService)
+                                                                                            _mqttPubSub(LightState::homeAssistRead, LightState::homeAssistUpdate, this, mqttClient),
+                                                                                            _webSocketServer(LightState::read,
+                                                                                                                LightState::update,
+                                                                                                                this,
+                                                                                                                server,
+                                                                                                                LIGHT_SETTINGS_SOCKET_PATH,
+                                                                                                                securityManager,
+                                                                                                                AuthenticationPredicates::IS_AUTHENTICATED),
+                                                                                            _mqttClient(mqttClient),
+                                                                                            _lightMqttSettingsService(lightMqttSettingsService),
+                                                                                            _artNetPubSub(LightState::readArtNet, LightState::read, LightState::update, this, _artNetReceiver)
 /*  _webSocketClient(LightState::read,
                    LightState::update,
                    this,
@@ -60,6 +62,7 @@ void LightStateService::begin()
 {
     _httpEndpoint.begin();
     _webSocketServer.begin();
+    _artNetPubSub.begin();
     _state.ledOn = DEFAULT_LED_STATE;
     _state.brightness = DEFAULT_BRIGHTNESS;
     onConfigUpdated();
