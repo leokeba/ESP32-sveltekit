@@ -18,5 +18,9 @@ void LightArtNetSettingsService::begin()
 }
 
 uint16_t LightArtNetSettingsService::getAddress() {
-    return _state.address;
+    return _state.channel;
+}
+
+uint16_t LightArtNetSettingsService::getUniverse() {
+    return _state.universe;
 }

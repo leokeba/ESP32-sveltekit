@@ -115,5 +115,5 @@ void LightStateService::registerConfig()
 
 void LightStateService::configureArtNet() {
     _artNetPubSub.address = _lightArtNetSettingsService->getAddress();
-    Serial.println(_lightArtNetSettingsService->getAddress());
+    _artNetPubSub.setUniverse(_lightArtNetSettingsService->getUniverse());
 }

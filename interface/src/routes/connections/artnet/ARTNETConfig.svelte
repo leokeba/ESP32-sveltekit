@@ -10,7 +10,8 @@
 	import Info from '~icons/tabler/info-circle';
 
 	type ArtNETSettings = {
-		address: number;
+		channel: number;
+		universe: number;
 	};
 
 	let artNetSettings: ArtNETSettings;
@@ -50,7 +51,7 @@
 				body: JSON.stringify(artNetSettings)
 			});
 			if (response.status == 200) {
-				notifications.success('Broker settings updated.', 3000);
+				notifications.success('ArtNet settings updated.', 3000);
 				artNetSettings = await response.json();
 			} else {
 				notifications.error('User not authorized.', 3000);
@@ -61,7 +62,7 @@
 		return;
 	}
 
-	function handleSubmitBroker() {
+	function handleSubmitArtNet() {
 		let valid = true;
 
 		console.log(artNetSettings)
@@ -82,7 +83,7 @@
 			<Spinner />
 		{:then nothing}
 			<form
-				on:submit|preventDefault={handleSubmitBroker}
+				on:submit|preventDefault={handleSubmitArtNet}
 				novalidate
 				bind:this={formField}
 				transition:slide|local={{ duration: 300, easing: cubicOut }}
@@ -93,18 +94,32 @@
 						>The LED is controllable via ArtNET with the demo project.</span
 					>
 				</div>
-				<div class="grid w-full grid-cols-1 content-center gap-x-4 px-4">
-					<div class="sm:col-span-2">
-						<label class="label" for="address">
-							<span class="label-text text-md">DMX Address</span>
+				<div class="grid w-full grid-cols-2 content-center gap-x-4 px-4">
+					<div class="sm:col-span-1">
+						<label class="label" for="channel">
+							<span class="label-text text-md">DMX Channel</span>
 						</label>
 						<input
 							type="number"
 							min="0"
 							max="511"
 							class="input input-bordered invalid:border-error w-full invalid:border-2}"
-							bind:value={artNetSettings.address}
-							id="address"
+							bind:value={artNetSettings.channel}
+							id="channel"
+							required
+						/>
+					</div>
+					<div class="sm:col-span-1">
+						<label class="label" for="universe">
+							<span class="label-text text-md">DMX Universe</span>
+						</label>
+						<input
+							type="number"
+							min="0"
+							max="32767"
+							class="input input-bordered invalid:border-error w-full invalid:border-2}"
+							bind:value={artNetSettings.universe}
+							id="universe"
 							required
 						/>
 					</div>

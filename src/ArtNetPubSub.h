@@ -15,7 +15,7 @@ class ArtNetPubSub
 {
 public:
     const uint16_t length = T::dmxChannels;
-    uint8_t universe = 1;
+    uint16_t universe = 1;
     uint16_t address = 0;
     ArtNetPubSub(
                 JsonStateReader<DmxFrame> artNetReader,
@@ -34,10 +34,22 @@ public:
         //                                    false);
     }
 
-    void begin() {
+    void subscribeArtNet() {
         _artNetReceiver->subscribeArtDmxUniverse(universe, [&](const uint8_t *data, uint16_t size, const ArtDmxMetadata &metadata, const ArtNetRemoteInfo &remote) {
             recvCallback(data, size, metadata, remote);
         });
+    }
+
+    void begin() {
+        subscribeArtNet();
+    }
+
+    void setUniverse(uint16_t _universe = 1) {
+        if (_universe != universe) {
+            _artNetReceiver->unsubscribeArtDmxUniverse(universe);
+            universe = _universe;
+            subscribeArtNet();
+        }
     }
 
     void recvCallback(const uint8_t *data, uint16_t size, const ArtDmxMetadata &metadata, const ArtNetRemoteInfo &remote) {
