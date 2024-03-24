@@ -34,11 +34,8 @@ esp_err_t ArtNetStatus::artNetStatus(PsychicRequest *request)
 {
     PsychicJsonResponse response = PsychicJsonResponse(request, false, MAX_ARTNET_STATUS_SIZE);
     JsonObject root = response.getRoot();
-
     root["enabled"] = _artNetSettingsService->isEnabled();
-    root["connected"] = _artNetSettingsService->isConnected();
-    root["client_id"] = _artNetSettingsService->getClientId();
-    root["last_error"] = _artNetSettingsService->getLastError();
+    root["port"] = _artNetSettingsService->getPort();
 
     return response.send();
 }

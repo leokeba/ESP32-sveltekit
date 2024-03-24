@@ -23,11 +23,6 @@ void ArtNetDataService::begin()
     _artNetPubSub.begin();
 }
 
-void ArtNetDataService::loop()
-{
-    _artNetPubSub.loop();
-}
-
 void ArtNetDataService::onDataUpdated()
 {
 }

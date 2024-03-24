@@ -14,8 +14,8 @@ template <class T>
 class ArtNetPubSub
 {
 public:
-    const uint8_t universe = 1;
-    const uint16_t length = 8;
+    const uint16_t length = T::dmxChannels;
+    uint8_t universe = 1;
     uint16_t address = 0;
     ArtNetPubSub(
                 JsonStateReader<DmxFrame> artNetReader,
@@ -35,7 +35,6 @@ public:
     }
 
     void begin() {
-
         _artNetReceiver->subscribeArtDmxUniverse(universe, [&](const uint8_t *data, uint16_t size, const ArtDmxMetadata &metadata, const ArtNetRemoteInfo &remote) {
             recvCallback(data, size, metadata, remote);
         });
@@ -51,12 +50,8 @@ public:
         DynamicJsonDocument json(4096);
         JsonObject jsonObject = json.to<JsonObject>();
         _artNetReader(dmxFrame, jsonObject);
-        // serializeJson(json, Serial);
         _statefulService->update(jsonObject, _stateUpdater, "artnet");
-    }
-
-    void loop() {
-        _artNetReceiver->parse();
+        // serializeJson(json, Serial);
     }
 
 protected:

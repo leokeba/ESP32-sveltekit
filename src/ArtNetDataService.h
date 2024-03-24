@@ -10,14 +10,29 @@
 class ArtNetFrame
 {
 public:
-    uint8_t data[512] = {};
-    uint16_t size = 512;
+
+    static const uint16_t dmxChannels = 16;
+
+    uint8_t data[dmxChannels] = {};
+    uint16_t size = dmxChannels;
     
     static void read(ArtNetFrame &settings, JsonObject &root)
     {
         std::string arrayStr = std::string((char *)settings.data, settings.size);
         root["arrayStr"] = arrayStr;
-        root["size"] = settings.size;
+        root["size"] = min(settings.size, settings.dmxChannels);
+    }
+
+    static StateUpdateResult update(JsonObject &root, ArtNetFrame &settings)
+    {
+        std::string arrayStr = root["arrayStr"];
+        uint16_t size = root["size"];
+        size = min(size, settings.dmxChannels);
+        settings.size = size;
+        for (int i = 0; i < size; i++) {
+            settings.data[i] = (uint8_t) arrayStr[i];
+        }
+        return StateUpdateResult::CHANGED;
     }
 
     static void readArtNet(DmxFrame &data, JsonObject &root) {
@@ -25,17 +40,6 @@ public:
         root["arrayStr"] = arrayStr;
         root["size"] = data.size;
         // serializeJson(root, Serial);
-    }
-
-    static StateUpdateResult update(JsonObject &root, ArtNetFrame &frame)
-    {
-        std::string arrayStr = root["arrayStr"];
-        uint16_t size = root["size"];
-        frame.size = size;
-        for (int i = 0; i < size; i++) {
-            frame.data[i] = (uint8_t) arrayStr[i];
-        }
-        return StateUpdateResult::CHANGED;
     }
 };
 
@@ -46,7 +50,6 @@ public:
     ~ArtNetDataService();
 
     void begin();
-    void loop();
 
 protected:
     void onDataUpdated();

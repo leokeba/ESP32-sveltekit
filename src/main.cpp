@@ -16,6 +16,7 @@
 #include <LightMqttSettingsService.h>
 #include <LightStateService.h>
 #include <PsychicHttpServer.h>
+#include <ArtNetStatus.h>
 // #include <ArtNetDataService.h>
 
 #define SERIAL_BAUD_RATE 115200
@@ -36,6 +37,15 @@ LightStateService lightStateService = LightStateService(&server,
                                                         &lightMqttSettingsService,
                                                         &artNetReceiver);
 
+ArtNetSettingsService artNetSettingsService = ArtNetSettingsService(&server,
+                                                                    esp32sveltekit.getFS(),
+                                                                    esp32sveltekit.getSecurityManager(),
+                                                                    &artNetReceiver);
+
+ArtNetStatus artNetStatus = ArtNetStatus(&server,
+                                        &artNetSettingsService,
+                                        esp32sveltekit.getSecurityManager());
+
 // ArtNetDataService artNetDataService = ArtNetDataService(&server,
 //                                                         esp32sveltekit.getSecurityManager(),
 //                                                         &artNetReceiver);
@@ -47,8 +57,10 @@ void setup()
 
     // start ESP32-SvelteKit
     esp32sveltekit.begin();
+    
+    artNetSettingsService.begin();
 
-    artNetReceiver.begin();
+    // artNetReceiver.begin();
 
     // load the initial light settings
     lightStateService.begin();
@@ -62,5 +74,6 @@ void loop()
 {
     // Delete Arduino loop task, as it is not needed in this example
     // vTaskDelete(NULL);
-    artNetReceiver.parse();
+    // artNetReceiver.parse();
+    artNetSettingsService.loop();
 }

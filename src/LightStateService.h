@@ -42,12 +42,6 @@ public:
         root["led_on"] = settings.ledOn;
         root["brightness"] = settings.brightness;
     }
-    
-    static void readArtNet(DmxFrame &data, JsonObject &root) {
-        root["led_on"] = data.data[0] > 127;
-        root["brightness"] = data.data[1];
-        serializeJson(root, Serial);
-    }
 
     static StateUpdateResult update(JsonObject &root, LightState &lightState)
     {   
@@ -92,9 +86,11 @@ public:
         return StateUpdateResult::UNCHANGED;
     }
 
+    static const uint16_t dmxChannels = 2;
+    
     static void dmxRead(DmxFrame &data, JsonObject &root) {
-        // root["brightness"] = data.data[1];
-        // root["state"] = data.data[0] > 127;
+        root["led_on"] = data.data[0] > 127;
+        root["brightness"] = data.data[1];
     }
 };
 

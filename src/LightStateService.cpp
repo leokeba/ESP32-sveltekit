@@ -36,7 +36,7 @@ LightStateService::LightStateService(PsychicHttpServer *server,
                                                                                                 AuthenticationPredicates::IS_AUTHENTICATED),
                                                                             _mqttClient(mqttClient),
                                                                             _lightMqttSettingsService(lightMqttSettingsService),
-                                                                            _artNetPubSub(LightState::readArtNet, LightState::read, LightState::update, this, artNetReceiver)
+                                                                            _artNetPubSub(LightState::dmxRead, LightState::read, LightState::update, this, artNetReceiver)
 /*  _webSocketClient(LightState::read,
                    LightState::update,
                    this,
