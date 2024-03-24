@@ -46,12 +46,13 @@ public:
         for (int i = address; i < end; i++) {
             newData[i-address] = data[i];
         }
-        DmxFrame dmxFrame = {data, length};
+        DmxFrame dmxFrame = {newData, length};
         DynamicJsonDocument json(4096);
         JsonObject jsonObject = json.to<JsonObject>();
         _artNetReader(dmxFrame, jsonObject);
         _statefulService->update(jsonObject, _stateUpdater, "artnet");
-        // serializeJson(json, Serial);
+        // serializeJsonPretty(json, Serial);
+        // Serial.println(address);
     }
 
 protected:

@@ -16,6 +16,7 @@
  **/
 
 #include <LightMqttSettingsService.h>
+#include <LightArtNetSettingsService.h>
 
 #include <HttpEndpoint.h>
 #include <MqttPubSub.h>
@@ -87,7 +88,7 @@ public:
     }
 
     static const uint16_t dmxChannels = 2;
-    
+
     static void dmxRead(DmxFrame &data, JsonObject &root) {
         root["led_on"] = data.data[0] > 127;
         root["brightness"] = data.data[1];
@@ -101,6 +102,7 @@ public:
                       SecurityManager *securityManager,
                       PsychicMqttClient *mqttClient,
                       LightMqttSettingsService *lightMqttSettingsService,
+                      LightArtNetSettingsService *lightArtNetSettingsService,
                       ArtnetWiFiReceiver *artNetReceiver);
     void begin();
 
@@ -112,8 +114,10 @@ private:
     ArtNetPubSub<LightState> _artNetPubSub;
     PsychicMqttClient *_mqttClient;
     LightMqttSettingsService *_lightMqttSettingsService;
+    LightArtNetSettingsService *_lightArtNetSettingsService;
 
     void registerConfig();
+    void configureArtNet();
     void onConfigUpdated();
 };
 

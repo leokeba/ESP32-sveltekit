@@ -28,6 +28,8 @@ ESP32SvelteKit esp32sveltekit(&server, 120);
 LightMqttSettingsService lightMqttSettingsService =
     LightMqttSettingsService(&server, esp32sveltekit.getFS(), esp32sveltekit.getSecurityManager());
 
+LightArtNetSettingsService lightArtNetSettingsService =
+    LightArtNetSettingsService(&server, esp32sveltekit.getFS(), esp32sveltekit.getSecurityManager());
 
 ArtnetWiFiReceiver artNetReceiver;
 
@@ -35,6 +37,7 @@ LightStateService lightStateService = LightStateService(&server,
                                                         esp32sveltekit.getSecurityManager(),
                                                         esp32sveltekit.getMqttClient(),
                                                         &lightMqttSettingsService,
+                                                        &lightArtNetSettingsService,
                                                         &artNetReceiver);
 
 ArtNetSettingsService artNetSettingsService = ArtNetSettingsService(&server,
@@ -57,15 +60,17 @@ void setup()
 
     // start ESP32-SvelteKit
     esp32sveltekit.begin();
-    
-    artNetSettingsService.begin();
 
+    artNetSettingsService.begin();
+    artNetStatus.begin();
+    
     // artNetReceiver.begin();
 
     // load the initial light settings
-    lightStateService.begin();
-    // start the light service
     lightMqttSettingsService.begin();
+    lightArtNetSettingsService.begin();
+    // start the light service
+    lightStateService.begin();
 
     // artNetDataService.begin();
 }

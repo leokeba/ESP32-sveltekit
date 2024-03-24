@@ -18,6 +18,7 @@ LightStateService::LightStateService(PsychicHttpServer *server,
                                      SecurityManager *securityManager,
                                      PsychicMqttClient *mqttClient,
                                      LightMqttSettingsService *lightMqttSettingsService,
+                                     LightArtNetSettingsService *lightArtNetSettingsService,
                                      ArtnetWiFiReceiver *artNetReceiver) :                  
                                                                             _httpEndpoint(LightState::read,
                                                                                             LightState::update,
@@ -36,6 +37,7 @@ LightStateService::LightStateService(PsychicHttpServer *server,
                                                                                                 AuthenticationPredicates::IS_AUTHENTICATED),
                                                                             _mqttClient(mqttClient),
                                                                             _lightMqttSettingsService(lightMqttSettingsService),
+                                                                            _lightArtNetSettingsService(lightArtNetSettingsService),
                                                                             _artNetPubSub(LightState::dmxRead, LightState::read, LightState::update, this, artNetReceiver)
 /*  _webSocketClient(LightState::read,
                    LightState::update,
@@ -53,6 +55,11 @@ LightStateService::LightStateService(PsychicHttpServer *server,
                                                 { registerConfig(); },
                                                 false);
 
+    // configure update handler for when the light settings change
+    _lightArtNetSettingsService->addUpdateHandler([&](const String &originId)
+                                                { configureArtNet(); },
+                                                false);
+
     // configure settings service update handler to update LED state
     addUpdateHandler([&](const String &originId)
                      { onConfigUpdated(); },
@@ -67,6 +74,7 @@ void LightStateService::begin()
     _state.ledOn = DEFAULT_LED_STATE;
     _state.brightness = DEFAULT_BRIGHTNESS;
     onConfigUpdated();
+    configureArtNet();
 }
 
 void LightStateService::onConfigUpdated()
@@ -103,4 +111,9 @@ void LightStateService::registerConfig()
     _mqttClient->publish(configTopic.c_str(), 0, false, payload.c_str());
 
     _mqttPubSub.configureTopics(pubTopic, subTopic);
+}
+
+void LightStateService::configureArtNet() {
+    _artNetPubSub.address = _lightArtNetSettingsService->getAddress();
+    Serial.println(_lightArtNetSettingsService->getAddress());
 }

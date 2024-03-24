@@ -15,6 +15,7 @@
 	import Logout from '~icons/tabler/logout';
 	import Copyright from '~icons/tabler/copyright';
 	import MQTT from '~icons/tabler/topology-star-3';
+	import ArtNET from '~icons/tabler/topology-full-hierarchy';
 	import NTP from '~icons/tabler/clock-check';
 	import Metrics from '~icons/tabler/report-analytics';
 	import { page } from '$app/stores';
@@ -64,6 +65,13 @@
 					title: 'MQTT',
 					icon: MQTT,
 					href: '/connections/mqtt',
+					feature: $page.data.features.mqtt,
+					active: false
+				},
+				{
+					title: 'ArtNET',
+					icon: ArtNET,
+					href: '/connections/artnet',
 					feature: $page.data.features.mqtt,
 					active: false
 				},
