@@ -36,7 +36,6 @@ LightStateService lightStateService = LightStateService(&server,
                                                         &lightMqttSettingsService,
                                                         &artNetReceiver);
 
-
 // ArtNetDataService artNetDataService = ArtNetDataService(&server,
 //                                                         esp32sveltekit.getSecurityManager(),
 //                                                         &artNetReceiver);
@@ -56,7 +55,6 @@ void setup()
     // start the light service
     lightMqttSettingsService.begin();
 
-
     // artNetDataService.begin();
 }
 
@@ -64,7 +62,5 @@ void loop()
 {
     // Delete Arduino loop task, as it is not needed in this example
     // vTaskDelete(NULL);
-    // artNetDataService.loop();
-    // lightStateService.loop();
     artNetReceiver.parse();
 }

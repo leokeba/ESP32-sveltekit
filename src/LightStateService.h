@@ -44,9 +44,8 @@ public:
     }
     
     static void readArtNet(DmxFrame &data, JsonObject &root) {
-        std::string arrayStr = std::string((char *)data.data, data.size);
-        root["arrayStr"] = arrayStr;
-        root["size"] = data.size;
+        root["led_on"] = data.data[0] > 127;
+        root["brightness"] = data.data[1];
         serializeJson(root, Serial);
     }
 
@@ -115,7 +114,6 @@ private:
     WebSocketServer<LightState> _webSocketServer;
     //  WebSocketClient<LightState> _webSocketClient;
     ArtNetPubSub<LightState> _artNetPubSub;
-    ArtnetWiFiReceiver *_artNetReceiver;
     PsychicMqttClient *_mqttClient;
     LightMqttSettingsService *_lightMqttSettingsService;
 

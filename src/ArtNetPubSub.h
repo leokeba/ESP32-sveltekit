@@ -2,13 +2,7 @@
 #define ArtNetPubSub_h
 
 #include <StatefulService.h>
-#include <HttpEndpoint.h>
-
 #include <ArtnetWiFi.h>
-
-#define ARTNET_DATA_ENDPOINT_PATH "/rest/artNetData"
-
-using ArtNetData = std::vector<uint8_t>;
 
 struct DmxFrame
 {
