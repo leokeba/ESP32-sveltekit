@@ -1,5 +1,5 @@
-#ifndef TMCDRIVER
-#define TMCDRIVER
+#ifndef TMCDRIVER_h
+#define TMCDRIVER_h
 
 #define R_SENSE 0.075f
 #define EN_PIN           22 // Enable
@@ -10,13 +10,9 @@
 #include <TMCStepper.h>
 #include "FastAccelStepper.h"
 
-FastAccelStepperEngine engine = FastAccelStepperEngine();
-
-TMC5160Stepper driver1(5, R_SENSE, MOSI, MISO, SCK);
-// TMC5160Stepper driver2(16, R_SENSE, MOSI, MISO, SCK);
-
 struct TMC5160Controller {
     TMC5160Stepper &driver;
+    FastAccelStepperEngine &engine;
     FastAccelStepper *stepper = NULL;
     bool enabled = false;
     bool direction = false;
@@ -32,12 +28,12 @@ struct TMC5160Controller {
     const int DIR;
     const int STEP;
 
-    TMC5160Controller(TMC5160Stepper &driver, const int STEP, const int DIR, const int EN) : driver {driver}, STEP {STEP}, DIR {DIR}, EN {EN} {}
+    TMC5160Controller(TMC5160Stepper &driver, FastAccelStepperEngine &engine, const int STEP, const int DIR, const int EN) : driver {driver}, engine {engine}, STEP {STEP}, DIR {DIR}, EN {EN} {}
 
     void init() {
-        pinMode(EN_PIN, OUTPUT);
-        pinMode(STEP_PIN, OUTPUT);
-        digitalWrite(EN_PIN, LOW);      // Enable driver in hardware
+        pinMode(EN, OUTPUT);
+        pinMode(STEP, OUTPUT);
+        digitalWrite(EN, LOW);      // Enable driver in hardware
         driver.begin();                 //  SPI: Init CS pins and possible SW SPI pins
         if (driver.version() == 0xFF || driver.version() == 0) Serial.println("Driver communication error");
         Serial.print("Driver firmware version: ");
@@ -50,25 +46,27 @@ struct TMC5160Controller {
         Serial.println(driver.DRV_STATUS(), BIN);
         initDriver();
 
-        // engine.init();
+        engine.init();
         stepper = engine.stepperConnectToPin(STEP);
         if (stepper) {
             stepper->setDirectionPin(DIR);
             stepper->setSpeedInHz(200*microsteps);       // 200 steps/s
             stepper->setAcceleration(40*microsteps);    // 40 steps/s²
         }
+        else Serial.println("Stepper ERROR");
     }
 
     void initDriver() {
         driver.GSTAT(1);
         driver.defaults();
-        driver.toff(3);
-        // driver.rms_current(500);
-        // driver.en_pwm_mode(true);
-        // driver.s2g_level(9);
-        // driver.s2vs_level(9);
-        // driver.bbmclks(2);
-        // driver.shaft(true);
+        // driver.toff(3);
+        enable();
+        driver.rms_current(500);
+        driver.en_pwm_mode(true);
+        driver.s2g_level(9);
+        driver.s2vs_level(9);
+        driver.bbmclks(2);
+        driver.shaft(true);
         loadSettings();
         // stepper->attachToPulseCounter(6, -200*microsteps, 200*microsteps);
     }
@@ -233,8 +231,5 @@ struct TMC5160Controller {
         return freewh;
     }
 };
-
-TMC5160Controller stepper1 = {driver1, 21, 17, EN_PIN};
-// TMC5160Controller stepper2 = {driver2, STEP_PIN, DIR_PIN, EN_PIN};
 
 #endif

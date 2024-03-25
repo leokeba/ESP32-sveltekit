@@ -18,12 +18,22 @@
 #include <PsychicHttpServer.h>
 #include <ArtNetStatus.h>
 // #include <ArtNetDataService.h>
+#include <StepperControlService.h>
 
 #define SERIAL_BAUD_RATE 115200
 
 PsychicHttpServer server;
 
 ESP32SvelteKit esp32sveltekit(&server, 120);
+
+FastAccelStepperEngine engine = FastAccelStepperEngine();
+
+TMC5160Stepper driver1(5, R_SENSE, MOSI, MISO, SCK);
+// TMC5160Stepper driver2(16, R_SENSE, MOSI, MISO, SCK);
+
+TMC5160Controller stepper1 = {driver1, engine, 21, 17, EN_PIN};
+// TMC5160Controller stepper2 = {driver2, STEP_PIN, DIR_PIN, EN_PIN};
+
 
 #if FT_ENABLED(FT_MQTT)
 LightMqttSettingsService lightMqttSettingsService =
@@ -34,6 +44,13 @@ LightArtNetSettingsService lightArtNetSettingsService =
     LightArtNetSettingsService(&server, esp32sveltekit.getFS(), esp32sveltekit.getSecurityManager());
 
 ArtnetWiFiReceiver artNetReceiver;
+
+StepperControlService stepperControlService = StepperControlService(&server,
+                                                        esp32sveltekit.getSecurityManager(),
+                                                        &lightArtNetSettingsService,
+                                                        &artNetReceiver,
+                                                        &stepper1
+);
 
 LightStateService lightStateService = LightStateService(&server,
                                                         esp32sveltekit.getSecurityManager(),
@@ -80,6 +97,8 @@ void setup()
     lightStateService.begin();
 
     // artNetDataService.begin();
+
+    stepperControlService.begin();
 }
 
 void loop()
