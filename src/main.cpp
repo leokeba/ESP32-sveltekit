@@ -25,8 +25,10 @@ PsychicHttpServer server;
 
 ESP32SvelteKit esp32sveltekit(&server, 120);
 
+#if FT_ENABLED(FT_MQTT)
 LightMqttSettingsService lightMqttSettingsService =
     LightMqttSettingsService(&server, esp32sveltekit.getFS(), esp32sveltekit.getSecurityManager());
+#endif
 
 LightArtNetSettingsService lightArtNetSettingsService =
     LightArtNetSettingsService(&server, esp32sveltekit.getFS(), esp32sveltekit.getSecurityManager());
@@ -35,10 +37,13 @@ ArtnetWiFiReceiver artNetReceiver;
 
 LightStateService lightStateService = LightStateService(&server,
                                                         esp32sveltekit.getSecurityManager(),
+#if FT_ENABLED(FT_MQTT)
                                                         esp32sveltekit.getMqttClient(),
                                                         &lightMqttSettingsService,
+#endif
                                                         &lightArtNetSettingsService,
-                                                        &artNetReceiver);
+                                                        &artNetReceiver
+);
 
 ArtNetSettingsService artNetSettingsService = ArtNetSettingsService(&server,
                                                                     esp32sveltekit.getFS(),
@@ -67,7 +72,9 @@ void setup()
     // artNetReceiver.begin();
 
     // load the initial light settings
+#if FT_ENABLED(FT_MQTT)
     lightMqttSettingsService.begin();
+#endif
     lightArtNetSettingsService.begin();
     // start the light service
     lightStateService.begin();

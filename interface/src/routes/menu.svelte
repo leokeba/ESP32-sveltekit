@@ -72,7 +72,7 @@
 					title: 'ArtNET',
 					icon: ArtNET,
 					href: '/connections/artnet',
-					feature: $page.data.features.mqtt,
+					feature: $page.data.features.artnet,
 					active: false
 				},
 				{

@@ -35,6 +35,11 @@ void FeaturesService::begin()
 #else
                     root["mqtt"] = false;
 #endif
+#if FT_ENABLED(FT_ARTNET)
+                    root["artnet"] = true;
+#else
+                    root["artnet"] = false;
+#endif
 #if FT_ENABLED(FT_NTP)
                     root["ntp"] = true;
 #else

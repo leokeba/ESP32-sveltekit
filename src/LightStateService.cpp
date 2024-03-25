@@ -16,8 +16,11 @@
 
 LightStateService::LightStateService(PsychicHttpServer *server,
                                      SecurityManager *securityManager,
+
+#if FT_MQTT
                                      PsychicMqttClient *mqttClient,
                                      LightMqttSettingsService *lightMqttSettingsService,
+#endif
                                      LightArtNetSettingsService *lightArtNetSettingsService,
                                      ArtnetWiFiReceiver *artNetReceiver) :                  
                                                                             _httpEndpoint(LightState::read,
@@ -27,7 +30,6 @@ LightStateService::LightStateService(PsychicHttpServer *server,
                                                                                             LIGHT_SETTINGS_ENDPOINT_PATH,
                                                                                             securityManager,
                                                                                             AuthenticationPredicates::IS_AUTHENTICATED),
-                                                                            _mqttPubSub(LightState::homeAssistRead, LightState::homeAssistUpdate, this, mqttClient),
                                                                             _webSocketServer(LightState::read,
                                                                                                 LightState::update,
                                                                                                 this,
@@ -35,8 +37,11 @@ LightStateService::LightStateService(PsychicHttpServer *server,
                                                                                                 LIGHT_SETTINGS_SOCKET_PATH,
                                                                                                 securityManager,
                                                                                                 AuthenticationPredicates::IS_AUTHENTICATED),
+#if FT_MQTT
                                                                             _mqttClient(mqttClient),
                                                                             _lightMqttSettingsService(lightMqttSettingsService),
+                                                                            _mqttPubSub(LightState::homeAssistRead, LightState::homeAssistUpdate, this, mqttClient),
+#endif
                                                                             _lightArtNetSettingsService(lightArtNetSettingsService),
                                                                             _artNetPubSub(LightState::dmxRead, LightState::read, LightState::update, this, artNetReceiver)
 /*  _webSocketClient(LightState::read,
@@ -47,6 +52,7 @@ LightStateService::LightStateService(PsychicHttpServer *server,
     // configure led to be output
     pinMode(LED_BUILTIN, OUTPUT);
 
+#if FT_MQTT
     // configure MQTT callback
     _mqttClient->onConnect(std::bind(&LightStateService::registerConfig, this));
 
@@ -54,6 +60,7 @@ LightStateService::LightStateService(PsychicHttpServer *server,
     _lightMqttSettingsService->addUpdateHandler([&](const String &originId)
                                                 { registerConfig(); },
                                                 false);
+#endif
 
     // configure update handler for when the light settings change
     _lightArtNetSettingsService->addUpdateHandler([&](const String &originId)
@@ -82,6 +89,7 @@ void LightStateService::onConfigUpdated()
     analogWrite(LED_BUILTIN, _state.ledOn ? _state.brightness : 0);
 }
 
+#if FT_MQTT
 void LightStateService::registerConfig()
 {
     if (!_mqttClient->connected())
@@ -112,6 +120,7 @@ void LightStateService::registerConfig()
 
     _mqttPubSub.configureTopics(pubTopic, subTopic);
 }
+#endif
 
 void LightStateService::configureArtNet() {
     _artNetPubSub.address = _lightArtNetSettingsService->getAddress();

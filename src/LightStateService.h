@@ -15,11 +15,14 @@
  *   the terms of the LGPL v3 license. See the LICENSE file for details.
  **/
 
+#if FT_MQTT
 #include <LightMqttSettingsService.h>
+#include <MqttPubSub.h>
+#endif
+
 #include <LightArtNetSettingsService.h>
 
 #include <HttpEndpoint.h>
-#include <MqttPubSub.h>
 #include <WebSocketServer.h>
 // #include <WebSocketClient.h>
 #include <ArtNetPubSub.h>
@@ -100,20 +103,24 @@ class LightStateService : public StatefulService<LightState>
 public:
     LightStateService(PsychicHttpServer *server,
                       SecurityManager *securityManager,
+#if FT_MQTT
                       PsychicMqttClient *mqttClient,
                       LightMqttSettingsService *lightMqttSettingsService,
+#endif
                       LightArtNetSettingsService *lightArtNetSettingsService,
                       ArtnetWiFiReceiver *artNetReceiver);
     void begin();
 
 private:
     HttpEndpoint<LightState> _httpEndpoint;
-    MqttPubSub<LightState> _mqttPubSub;
     WebSocketServer<LightState> _webSocketServer;
     //  WebSocketClient<LightState> _webSocketClient;
     ArtNetPubSub<LightState> _artNetPubSub;
+#if FT_MQTT
+    MqttPubSub<LightState> _mqttPubSub;
     PsychicMqttClient *_mqttClient;
     LightMqttSettingsService *_lightMqttSettingsService;
+#endif
     LightArtNetSettingsService *_lightArtNetSettingsService;
 
     void registerConfig();
