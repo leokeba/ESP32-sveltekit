@@ -50,9 +50,9 @@
 
 	let menuItems = [
 		{
-			title: 'Demo App',
+			title: 'Stepper',
 			icon: Control,
-			href: '/demo',
+			href: '/stepper',
 			feature: true,
 			active: false
 		},
