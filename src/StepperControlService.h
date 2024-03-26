@@ -22,6 +22,7 @@ public:
     bool isEnabled;
     bool direction;
     int32_t move;
+    int32_t newMove;
     int32_t speed;
     uint32_t acceleration;
     uint32_t current;
@@ -40,7 +41,8 @@ public:
     {   
         settings.isEnabled = root["isEnabled"];
         settings.direction = root["direction"];
-        settings.move = int32_t(root["move"]) - settings.move;
+        settings.newMove = settings.move - int32_t(root["move"]);
+        settings.move = root["move"];
         settings.speed = root["speed"];
         settings.acceleration = root["acceleration"];
         settings.current = root["current"];
@@ -61,7 +63,7 @@ public:
     static void readState(TMC5160Controller *stepper, JsonObject &root) {
         root["isEnabled"] = stepper->enabled;
         root["direction"] = stepper->direction;
-        root["move"] = stepper->move();
+        // root["move"] = stepper->move();
         root["speed"] = stepper->getSpeed();
         root["acceleration"] = stepper->getAcceleration();
         root["current"] = stepper->driver.rms_current();

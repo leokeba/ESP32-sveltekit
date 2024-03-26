@@ -56,7 +56,7 @@ void StepperControlService::onConfigUpdated()
     else if(!_state.isEnabled & _stepper->enabled) _stepper->disable();
     _stepper->setAcceleration(_state.acceleration);
     _stepper->setSpeed(_state.direction ? _state.speed : -_state.speed);
-    if (_state.move) _stepper->move(_state.direction ? _state.move : -_state.move);
+    if (abs(_state.newMove)>0) _stepper->move(_state.newMove);
     _stepper->driver.rms_current(_state.current);
 }
 

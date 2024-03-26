@@ -170,6 +170,12 @@ struct TMC5160Controller {
     }
 
     float mod(float a, float N) {return a - N*floor(a/N);}
+
+    void setAngle(double angle) {
+        double dist = angle - getAngle();
+        moveR(dist);
+    }
+
     double getAngle() {
         return mod(stepper->getCurrentPosition()*360./double(microsteps), 360.);
     }
