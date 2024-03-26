@@ -40,7 +40,7 @@ public:
     {   
         settings.isEnabled = root["isEnabled"];
         settings.direction = root["direction"];
-        settings.move = root["move"];
+        settings.move = int32_t(root["move"]) - settings.move;
         settings.speed = root["speed"];
         settings.acceleration = root["acceleration"];
         settings.current = root["current"];
