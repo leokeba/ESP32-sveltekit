@@ -23,9 +23,9 @@
 	import { user } from '$lib/stores/user';
 	import { createEventDispatcher } from 'svelte';
 
-	const appName = 'ESP32 SvelteKit';
+	const appName = 'Motion Controller';
 
-	const copyright = '2023 theelims';
+	const copyright = '2024 leokeba';
 
 	const github = { href: 'https://github.com/' + $page.data.github, active: true };
 

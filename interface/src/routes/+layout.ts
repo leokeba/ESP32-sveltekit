@@ -9,7 +9,7 @@ export const load = (async () => {
 	const item = await result.json();
 	return {
 		features: item,
-		title: 'ESP32-SvelteKit',
-		github: 'theelims/ESP32-sveltekit'
+		title: 'ESP32 Motion Controller',
+		github: 'leokeba/ESP32-sveltekit/tree/stepper'
 	};
 }) satisfies LayoutLoad;

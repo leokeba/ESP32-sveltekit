@@ -60,13 +60,14 @@ struct TMC5160Controller {
         driver.GSTAT(1);
         driver.defaults();
         // driver.toff(3);
-        enable();
+        // enable();
         driver.rms_current(500);
         driver.en_pwm_mode(true);
         driver.s2g_level(9);
         driver.s2vs_level(9);
         driver.bbmclks(2);
         driver.shaft(true);
+        disable();
         loadSettings();
         // stepper->attachToPulseCounter(6, -200*microsteps, 200*microsteps);
     }

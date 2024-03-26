@@ -3,6 +3,7 @@
 StepperControlService::StepperControlService(PsychicHttpServer *server,
                                      SecurityManager *securityManager,
                                      StepperArtNetSettingsService *stepperArtNetSettingsService,
+                                     StepperSettingsService *stepperSettingsService,
                                      ArtnetWiFiReceiver *artNetReceiver,
                                      TMC5160Controller *stepper) :                  
                                                                             _httpEndpoint(StepperControl::read,
@@ -20,20 +21,17 @@ StepperControlService::StepperControlService(PsychicHttpServer *server,
                                                                                                 securityManager,
                                                                                                 AuthenticationPredicates::IS_AUTHENTICATED),
                                                                             _stepperArtNetSettingsService(stepperArtNetSettingsService),
+                                                                            _stepperSettingsService(stepperSettingsService),
                                                                             _artNetPubSub(StepperControl::dmxRead, StepperControl::read, StepperControl::update, this, artNetReceiver),
                                                                             _stepper(stepper)
 {
-    // configure led to be output
-    pinMode(LED_BUILTIN, OUTPUT);
-
     // configure update handler for when the stepper settings change
     _stepperArtNetSettingsService->addUpdateHandler([&](const String &originId)
                                                 { configureArtNet(); },
                                                 false);
 
-    // configure settings service update handler to update LED state
     addUpdateHandler([&](const String &originId)
-                     { onConfigUpdated(); },
+                     { onConfigUpdated(originId); },
                      false);
 }
 
@@ -42,30 +40,36 @@ void StepperControlService::begin()
     _httpEndpoint.begin();
     _webSocketServer.begin();
     _artNetPubSub.begin();
-    _stepper->init();
-    // _state.ledOn = DEFAULT_LED_STATE;
-    // _state.brightness = DEFAULT_BRIGHTNESS;
-    onConfigUpdated();
-    configureArtNet();
     updateState();
+    onConfigUpdated("begin");
+    configureArtNet();
 }
 
-void StepperControlService::onConfigUpdated()
+void StepperControlService::loop() {
+    unsigned long now = millis();
+    if (now - lastUpdate > 500) {
+        updateState();
+        lastUpdate = now;
+    }
+}
+
+void StepperControlService::onConfigUpdated(const String &originId)
 {
-    if (_state.isEnabled & !_stepper->enabled) _stepper->enable();
-    else if(!_state.isEnabled & _stepper->enabled) _stepper->disable();
-    _stepper->setAcceleration(_state.acceleration);
-    _stepper->setSpeed(_state.direction ? _state.speed : -_state.speed);
-    if (abs(_state.newMove)>0) _stepper->move(_state.newMove);
-    _stepper->driver.rms_current(_state.current);
+    if (originId != "driver") {
+        Serial.println(originId);
+        if (_state.isEnabled & !_stepper->enabled) _stepper->enable();
+        else if(!_state.isEnabled & _stepper->enabled) _stepper->disable();
+        _stepper->setAcceleration(_state.acceleration * _stepperSettingsService->getMaxAccel() / 1024);
+        _stepper->setSpeed((_state.direction ? _state.speed : -_state.speed) * _stepperSettingsService->getMaxSpeed() / 1024 );
+        if (abs(_state.newMove)>0) _stepper->move(_state.newMove * 200 / 1024);
+    }
 }
 
 void StepperControlService::updateState() {
-    
-    DynamicJsonDocument json(4096);
+    DynamicJsonDocument json(1024);
     JsonObject jsonObject = json.to<JsonObject>();
-    _state.readState(_stepper, jsonObject);
-    update(jsonObject, _state.update, "timer");
+    _state.readState(_stepper, _stepperSettingsService, jsonObject);
+    update(jsonObject, _state.update, "driver");
 }
 
 void StepperControlService::configureArtNet() {

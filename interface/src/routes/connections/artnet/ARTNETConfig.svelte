@@ -69,7 +69,7 @@
 	}
 </script>
 
-<SettingsCard collapsible={true} open={false}>
+<SettingsCard collapsible={true} open={true}>
 	<ArtNET slot="icon" class="lex-shrink-0 mr-2 h-6 w-6 self-end" />
 	<span slot="title">ArtNET Stepper Settings</span>
 	<div class="w-full overflow-x-auto">
@@ -84,9 +84,15 @@
 			>
 				<div class="alert alert-info my-2 shadow-lg">
 					<Info class="h-6 w-6 flex-shrink-0 stroke-current" />
-					<span
-						>The Stepper is controllable via ArtNET using 6 DMX channels.</span
-					>
+					<span>
+						The Stepper is controllable via ArtNET using 5 DMX channels : 
+						<br />
+							{artNetSettings.channel}=Enable,
+							{artNetSettings.channel+1}=Direction,
+							{artNetSettings.channel+2}=Speed,
+							{artNetSettings.channel+3}=Move,
+							{artNetSettings.channel+4}=Acceleration
+					</span>
 				</div>
 				<div class="grid w-full grid-cols-2 content-center gap-x-4 px-4">
 					<div class="sm:col-span-1">

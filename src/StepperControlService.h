@@ -2,6 +2,7 @@
 #define StepperControlService_h
 
 #include <StepperArtNetSettingsService.h>
+#include <StepperSettingsService.h>
 
 #include <HttpEndpoint.h>
 #include <WebSocketServer.h>
@@ -25,7 +26,6 @@ public:
     int32_t newMove;
     int32_t speed;
     uint32_t acceleration;
-    uint32_t current;
 
     static void read(StepperControl &settings, JsonObject &root)
     {
@@ -34,7 +34,6 @@ public:
         root["move"] = settings.move;
         root["speed"] = settings.speed;
         root["acceleration"] = settings.acceleration;
-        root["current"] = settings.current;
     }
 
     static StateUpdateResult update(JsonObject &root, StepperControl &settings)
@@ -45,11 +44,10 @@ public:
         settings.move = root["move"];
         settings.speed = root["speed"];
         settings.acceleration = root["acceleration"];
-        settings.current = root["current"];
         return StateUpdateResult::CHANGED;
     }
 
-    static const uint16_t dmxChannels = 6;
+    static const uint16_t dmxChannels = 5;
 
     static void dmxRead(DmxFrame &data, JsonObject &root) {
         root["isEnabled"] = data.data[0] > 127;
@@ -57,16 +55,14 @@ public:
         root["speed"] = data.data[2];
         root["move"] = data.data[3];
         root["acceleration"] = data.data[4];
-        root["current"] = data.data[5]*16;
     }
 
-    static void readState(TMC5160Controller *stepper, JsonObject &root) {
+    static void readState(TMC5160Controller *stepper, StepperSettingsService *stepperSettingsService, JsonObject &root) {
         root["isEnabled"] = stepper->enabled;
-        root["direction"] = stepper->direction;
+        root["direction"] = stepper->getSpeed() >= 0;
         // root["move"] = stepper->move();
-        root["speed"] = stepper->getSpeed();
-        root["acceleration"] = stepper->getAcceleration();
-        root["current"] = stepper->driver.rms_current();
+        root["speed"] = abs(stepper->getSpeed() * 1024 / stepperSettingsService->getMaxSpeed());
+        root["acceleration"] = stepper->getAcceleration() * 1024 / stepperSettingsService->getMaxAccel();
     }
 };
 
@@ -76,9 +72,11 @@ public:
     StepperControlService(PsychicHttpServer *server,
                       SecurityManager *securityManager,
                       StepperArtNetSettingsService *stepperArtNetSettingsService,
+                      StepperSettingsService *stepperSettingsService,
                       ArtnetWiFiReceiver *artNetReceiver,
                       TMC5160Controller *stepper);
     void begin();
+    void loop();
 
 private:
     HttpEndpoint<StepperControl> _httpEndpoint;
@@ -86,11 +84,14 @@ private:
     //  WebSocketClient<StepperControl> _webSocketClient;
     ArtNetPubSub<StepperControl> _artNetPubSub;
     StepperArtNetSettingsService *_stepperArtNetSettingsService;
+    StepperSettingsService *_stepperSettingsService;
     TMC5160Controller *_stepper;
+
+    unsigned long lastUpdate = 0;
 
     void registerConfig();
     void configureArtNet();
-    void onConfigUpdated();
+    void onConfigUpdated(const String &originId);
     void updateState();
 };
 

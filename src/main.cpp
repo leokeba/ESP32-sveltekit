@@ -19,6 +19,7 @@
 #include <ArtNetStatus.h>
 // #include <ArtNetDataService.h>
 #include <StepperControlService.h>
+#include <StepperSettingsService.h>
 
 #define SERIAL_BAUD_RATE 115200
 
@@ -47,11 +48,14 @@ LightMqttSettingsService lightMqttSettingsService =
 StepperArtNetSettingsService stepperArtNetSettingsService =
     StepperArtNetSettingsService(&server, esp32sveltekit.getFS(), esp32sveltekit.getSecurityManager());
 
+StepperSettingsService stepperSettingsService = StepperSettingsService(&server, esp32sveltekit.getFS(), esp32sveltekit.getSecurityManager(), &stepper1);
+
 ArtnetWiFiReceiver artNetReceiver;
 
 StepperControlService stepperControlService = StepperControlService(&server,
                                                         esp32sveltekit.getSecurityManager(),
                                                         &stepperArtNetSettingsService,
+                                                        &stepperSettingsService,
                                                         &artNetReceiver,
                                                         &stepper1
 );
@@ -89,6 +93,8 @@ void setup()
 
     artNetSettingsService.begin();
     artNetStatus.begin();
+
+    stepper1.init();
     
     // artNetReceiver.begin();
 
@@ -103,6 +109,7 @@ void setup()
     // artNetDataService.begin();
 
     stepperArtNetSettingsService.begin();
+    stepperSettingsService.begin();
 
     stepperControlService.begin();
 }
@@ -113,4 +120,5 @@ void loop()
     // vTaskDelete(NULL);
     // artNetReceiver.parse();
     artNetSettingsService.loop();
+    // stepperControlService.loop();
 }
