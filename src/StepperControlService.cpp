@@ -2,7 +2,7 @@
 
 StepperControlService::StepperControlService(PsychicHttpServer *server,
                                      SecurityManager *securityManager,
-                                     LightArtNetSettingsService *lightArtNetSettingsService,
+                                     StepperArtNetSettingsService *stepperArtNetSettingsService,
                                      ArtnetWiFiReceiver *artNetReceiver,
                                      TMC5160Controller *stepper) :                  
                                                                             _httpEndpoint(StepperControl::read,
@@ -19,15 +19,15 @@ StepperControlService::StepperControlService(PsychicHttpServer *server,
                                                                                                 STEPPER_CONTROL_SOCKET_PATH,
                                                                                                 securityManager,
                                                                                                 AuthenticationPredicates::IS_AUTHENTICATED),
-                                                                            _lightArtNetSettingsService(lightArtNetSettingsService),
+                                                                            _stepperArtNetSettingsService(stepperArtNetSettingsService),
                                                                             _artNetPubSub(StepperControl::dmxRead, StepperControl::read, StepperControl::update, this, artNetReceiver),
                                                                             _stepper(stepper)
 {
     // configure led to be output
     pinMode(LED_BUILTIN, OUTPUT);
 
-    // configure update handler for when the light settings change
-    _lightArtNetSettingsService->addUpdateHandler([&](const String &originId)
+    // configure update handler for when the stepper settings change
+    _stepperArtNetSettingsService->addUpdateHandler([&](const String &originId)
                                                 { configureArtNet(); },
                                                 false);
 
@@ -67,6 +67,6 @@ void StepperControlService::updateState() {
 }
 
 void StepperControlService::configureArtNet() {
-    _artNetPubSub.address = _lightArtNetSettingsService->getAddress();
-    _artNetPubSub.setUniverse(_lightArtNetSettingsService->getUniverse());
+    _artNetPubSub.address = _stepperArtNetSettingsService->getAddress();
+    _artNetPubSub.setUniverse(_stepperArtNetSettingsService->getUniverse());
 }

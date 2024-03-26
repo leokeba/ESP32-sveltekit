@@ -40,27 +40,31 @@ LightMqttSettingsService lightMqttSettingsService =
     LightMqttSettingsService(&server, esp32sveltekit.getFS(), esp32sveltekit.getSecurityManager());
 #endif
 
-LightArtNetSettingsService lightArtNetSettingsService =
-    LightArtNetSettingsService(&server, esp32sveltekit.getFS(), esp32sveltekit.getSecurityManager());
+// LightArtNetSettingsService lightArtNetSettingsService =
+//     LightArtNetSettingsService(&server, esp32sveltekit.getFS(), esp32sveltekit.getSecurityManager());
+
+
+StepperArtNetSettingsService stepperArtNetSettingsService =
+    StepperArtNetSettingsService(&server, esp32sveltekit.getFS(), esp32sveltekit.getSecurityManager());
 
 ArtnetWiFiReceiver artNetReceiver;
 
 StepperControlService stepperControlService = StepperControlService(&server,
                                                         esp32sveltekit.getSecurityManager(),
-                                                        &lightArtNetSettingsService,
+                                                        &stepperArtNetSettingsService,
                                                         &artNetReceiver,
                                                         &stepper1
 );
 
-LightStateService lightStateService = LightStateService(&server,
-                                                        esp32sveltekit.getSecurityManager(),
-#if FT_ENABLED(FT_MQTT)
-                                                        esp32sveltekit.getMqttClient(),
-                                                        &lightMqttSettingsService,
-#endif
-                                                        &lightArtNetSettingsService,
-                                                        &artNetReceiver
-);
+// LightStateService lightStateService = LightStateService(&server,
+//                                                         esp32sveltekit.getSecurityManager(),
+// #if FT_ENABLED(FT_MQTT)
+//                                                         esp32sveltekit.getMqttClient(),
+//                                                         &lightMqttSettingsService,
+// #endif
+//                                                         &lightArtNetSettingsService,
+//                                                         &artNetReceiver
+// );
 
 ArtNetSettingsService artNetSettingsService = ArtNetSettingsService(&server,
                                                                     esp32sveltekit.getFS(),
@@ -92,11 +96,13 @@ void setup()
 #if FT_ENABLED(FT_MQTT)
     lightMqttSettingsService.begin();
 #endif
-    lightArtNetSettingsService.begin();
+    // lightArtNetSettingsService.begin();
     // start the light service
-    lightStateService.begin();
+    // lightStateService.begin();
 
     // artNetDataService.begin();
+
+    stepperArtNetSettingsService.begin();
 
     stepperControlService.begin();
 }

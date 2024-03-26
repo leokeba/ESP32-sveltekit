@@ -20,7 +20,7 @@
 
 	async function getArtNETSettings() {
 		try {
-			const response = await fetch('/rest/lightArtNetSettings', {
+			const response = await fetch('/rest/stepperArtNetSettings', {
 				method: 'GET',
 				headers: {
 					Authorization: $page.data.features.security ? 'Bearer ' + $user.bearer_token : 'Basic',
@@ -34,15 +34,9 @@
 		return;
 	}
 
-	let formErrors = {
-		uid: false,
-		path: false,
-		name: false
-	};
-
 	async function postArtNETSettings() {
 		try {
-			const response = await fetch('/rest/lightArtNetSettings', {
+			const response = await fetch('/rest/stepperArtNetSettings', {
 				method: 'POST',
 				headers: {
 					Authorization: $page.data.features.security ? 'Bearer ' + $user.bearer_token : 'Basic',
@@ -77,7 +71,7 @@
 
 <SettingsCard collapsible={true} open={false}>
 	<ArtNET slot="icon" class="lex-shrink-0 mr-2 h-6 w-6 self-end" />
-	<span slot="title">ArtNET Light Settings</span>
+	<span slot="title">ArtNET Stepper Settings</span>
 	<div class="w-full overflow-x-auto">
 		{#await getArtNETSettings()}
 			<Spinner />
@@ -91,13 +85,13 @@
 				<div class="alert alert-info my-2 shadow-lg">
 					<Info class="h-6 w-6 flex-shrink-0 stroke-current" />
 					<span
-						>The LED is controllable via ArtNET with the demo project.</span
+						>The Stepper is controllable via ArtNET using 6 DMX channels.</span
 					>
 				</div>
 				<div class="grid w-full grid-cols-2 content-center gap-x-4 px-4">
 					<div class="sm:col-span-1">
 						<label class="label" for="channel">
-							<span class="label-text text-md">DMX Channel</span>
+							<span class="label-text text-md">DMX Start Channel</span>
 						</label>
 						<input
 							type="number"

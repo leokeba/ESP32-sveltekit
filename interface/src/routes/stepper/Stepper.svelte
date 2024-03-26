@@ -4,6 +4,7 @@
 	import { page } from '$app/stores';
 	import { notifications } from '$lib/components/toasts/notifications';
 	import SettingsCard from '$lib/components/SettingsCard.svelte';
+	import Collapsible from '$lib/components/Collapsible.svelte';
 	import Stepper from '~icons/tabler/rotate';
 	import Info from '~icons/tabler/info-circle';
 	import Save from '~icons/tabler/device-floppy';
@@ -69,7 +70,7 @@
 	} */
 </style>
 
-<SettingsCard collapsible={true}>
+<SettingsCard collapsible={true} open={true}>
 	<Stepper slot="icon" class="flex-shrink-0 mr-2 h-6 w-6 self-end" />
 	<span slot="title">Stepper</span>
 	<div class="w-full">
@@ -152,4 +153,12 @@
 			</div>
 		</div>
 	</div>
+	<!-- {#if !$page.data.features.security || $user.admin}
+	<Collapsible open={false} class="shadow-lg">
+		<span slot="title">Driver Settings</span>
+
+		<form on:submit|preventDefault={""} novalidate>
+		</form>
+	</Collapsible>
+{/if} -->
 </SettingsCard>

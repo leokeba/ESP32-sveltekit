@@ -1,7 +1,7 @@
 #ifndef StepperControlService_h
 #define StepperControlService_h
 
-#include <LightArtNetSettingsService.h>
+#include <StepperArtNetSettingsService.h>
 
 #include <HttpEndpoint.h>
 #include <WebSocketServer.h>
@@ -47,11 +47,15 @@ public:
         return StateUpdateResult::CHANGED;
     }
 
-    static const uint16_t dmxChannels = 2;
+    static const uint16_t dmxChannels = 6;
 
     static void dmxRead(DmxFrame &data, JsonObject &root) {
-        // root["led_on"] = data.data[0] > 127;
-        // root["brightness"] = data.data[1];
+        root["isEnabled"] = data.data[0] > 127;
+        root["direction"] = data.data[1] > 127;
+        root["speed"] = data.data[2];
+        root["move"] = data.data[3];
+        root["acceleration"] = data.data[4];
+        root["current"] = data.data[5]*16;
     }
 
     static void readState(TMC5160Controller *stepper, JsonObject &root) {
@@ -69,7 +73,7 @@ class StepperControlService : public StatefulService<StepperControl>
 public:
     StepperControlService(PsychicHttpServer *server,
                       SecurityManager *securityManager,
-                      LightArtNetSettingsService *lightArtNetSettingsService,
+                      StepperArtNetSettingsService *stepperArtNetSettingsService,
                       ArtnetWiFiReceiver *artNetReceiver,
                       TMC5160Controller *stepper);
     void begin();
@@ -79,7 +83,7 @@ private:
     WebSocketServer<StepperControl> _webSocketServer;
     //  WebSocketClient<StepperControl> _webSocketClient;
     ArtNetPubSub<StepperControl> _artNetPubSub;
-    LightArtNetSettingsService *_lightArtNetSettingsService;
+    StepperArtNetSettingsService *_stepperArtNetSettingsService;
     TMC5160Controller *_stepper;
 
     void registerConfig();
