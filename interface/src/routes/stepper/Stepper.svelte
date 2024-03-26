@@ -14,11 +14,12 @@
 		isEnabled: boolean;
 		direction: boolean;
 		speed: number;
+		move: number;
 		acceleration: number;
 		current: number;
 	};
 
-	let stepperControl: StepperControl = { isEnabled: false, direction: false, speed: 128, acceleration: 30, current: 800 };
+	let stepperControl: StepperControl = { isEnabled: false, direction: false, speed: 128, move: 0, acceleration: 30, current: 800 };
 
 	let lightOn = false;
 	let lightBrightness = 128;
@@ -109,6 +110,20 @@
 				class="range range-primary"
 				id="speed"
 				bind:value={stepperControl.speed}
+				on:change={() => {
+					stepperControlSocket.send(JSON.stringify(stepperControl));
+				}}
+			/>
+			<label class="label cursor-pointer" for="move">
+				<span class="mr-4">Move </span>
+			</label>
+			<input 
+				type="range"
+				min="0" 
+				max="400" 
+				class="range range-primary"
+				id="move"
+				bind:value={stepperControl.move}
 				on:change={() => {
 					stepperControlSocket.send(JSON.stringify(stepperControl));
 				}}
