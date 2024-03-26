@@ -49,89 +49,97 @@
 
 </script>
 
-<SettingsCard collapsible={false}>
-	<Stepper slot="icon" class="lex-shrink-0 mr-2 h-6 w-6 self-end" />
+
+<style>
+	.grid-form {
+	  grid-template-columns: [labels] auto [controls] 1fr;
+	}
+	/* .grid-form {
+	  display: grid;
+	  grid-template-columns: [labels] auto [controls] 1fr;
+	  grid-auto-flow: row;
+	}
+	.grid-form label  {
+	  grid-column: labels;
+	  grid-row: auto;
+	}
+	.grid-form input {
+	  grid-column: controls;
+	  grid-row: auto;
+	} */
+</style>
+
+<SettingsCard collapsible={true}>
+	<Stepper slot="icon" class="flex-shrink-0 mr-2 h-6 w-6 self-end" />
 	<span slot="title">Stepper</span>
 	<div class="w-full">
-		<!-- <h1 class="text-xl font-semibold">Websocket Example</h1>
-		<div class="alert alert-info my-2 shadow-lg">
-			<Info class="h-6 w-6 flex-shrink-0 stroke-current" />
-			<span
-				>The switch below controls the LED via the WebSocket. It will automatically update whenever
-				the LED state changes.</span
-			>
-		</div> -->
-		<div class="form-control w-52">
-			<label class="label cursor-pointer">
+		<div class="w-full grid grid-flow-row grid-form items-center">
+			<label class="label cursor-pointer" for="enable">
 				<span class="">Enable</span>
-				<input
-					type="checkbox"
-					class="toggle toggle-primary"
-					bind:checked={stepperControl.isEnabled}
-					on:change={() => {
-						stepperControlSocket.send(JSON.stringify(stepperControl));
-					}}
-				/>
 			</label>
-		</div>
-		<div class="form-control w-52">
-			<label class="label cursor-pointer">
+			<input
+				type="checkbox"
+				class="toggle toggle-primary"
+				id="enable"
+				bind:checked={stepperControl.isEnabled}
+				on:change={() => {
+					stepperControlSocket.send(JSON.stringify(stepperControl));
+				}}
+			/>
+			<label class="label cursor-pointer" for="direction">
 				<span class="">Direction</span>
-				<input
-					type="checkbox"
-					class="toggle toggle-primary"
-					bind:checked={stepperControl.direction}
-					on:change={() => {
-						stepperControlSocket.send(JSON.stringify(stepperControl));
-					}}
-				/>
 			</label>
-		</div>
-		<div class="form-control">
-			<label class="label cursor-pointer">
+			<input
+				type="checkbox"
+				class="toggle toggle-primary"
+				id="direction"
+				bind:checked={stepperControl.direction}
+				on:change={() => {
+					stepperControlSocket.send(JSON.stringify(stepperControl));
+				}}
+			/>
+			<label class="label cursor-pointer" for="speed">
 				<span class="mr-4">Speed </span>
-				<input 
-					type="range"
-					min="0" 
-					max="400" 
-					class="range range-primary"
-					bind:value={stepperControl.speed}
-					on:change={() => {
-						stepperControlSocket.send(JSON.stringify(stepperControl));
-					}}
-				/>
 			</label>
-		</div>
-
-		<div class="form-control">
-			<label class="label cursor-pointer">
+			<input 
+				type="range"
+				min="0" 
+				max="400" 
+				class="range range-primary"
+				id="speed"
+				bind:value={stepperControl.speed}
+				on:change={() => {
+					stepperControlSocket.send(JSON.stringify(stepperControl));
+				}}
+			/>
+			<label class="label cursor-pointer" for="acceleration">
 				<span class="mr-4">Acceleration </span>
-				<input 
-					type="range"
-					min="0" 
-					max="200" 
-					class="range range-primary"
-					bind:value={stepperControl.acceleration}
-					on:change={() => {
-						stepperControlSocket.send(JSON.stringify(stepperControl));
-					}}
-				/>
 			</label>
-		</div>
-		<div class="form-control">
-			<label class="label cursor-pointer">
+			<input 
+				type="range"
+				min="0" 
+				max="200" 
+				class="range range-primary"
+				id="acceleration"
+				bind:value={stepperControl.acceleration}
+				on:change={() => {
+					stepperControlSocket.send(JSON.stringify(stepperControl));
+				}}
+			/>
+			<label class="label cursor-pointer" for="current">
 				<span class="mr-4">Current </span>
-				<input 
-					type="range"
-					min="0" 
-					max="4000" 
-					class="range range-primary"
-					bind:value={stepperControl.current}
-					on:change={() => {
-						stepperControlSocket.send(JSON.stringify(stepperControl));
-					}}
-				/>
 			</label>
+			<input 
+				type="range"
+				min="0" 
+				max="4000" 
+				class="range range-primary"
+				id="current"
+				bind:value={stepperControl.current}
+				on:change={() => {
+					stepperControlSocket.send(JSON.stringify(stepperControl));
+				}}
+			/>
 		</div>
 		<div class="flex flex-row flex-wrap justify-between gap-x-2">
 			<div class="flex-grow"></div>
