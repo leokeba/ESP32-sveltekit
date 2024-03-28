@@ -58,6 +58,7 @@ public:
     void begin();
     int32_t getMaxSpeed();
     int32_t getMaxAccel();
+    StepperSettings getState();
 
 private:
     HttpEndpoint<StepperSettings> _httpEndpoint;

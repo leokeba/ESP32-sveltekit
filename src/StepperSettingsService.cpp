@@ -42,8 +42,14 @@ int32_t StepperSettingsService::getMaxAccel() {
     return _state.maxAcceleration;
 }
 
+StepperSettings StepperSettingsService::getState() {
+    return _state;
+}
+
 void StepperSettingsService::onConfigUpdated()
 {
+    _stepper->maxSpeed = _state.maxSpeed;
+    _stepper->maxAccel = _state.maxAcceleration;
     _stepper->driver.rms_current(_state.current);
     _stepper->driver.shaft(_state.invertDirection);
 }

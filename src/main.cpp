@@ -120,5 +120,5 @@ void loop()
     // vTaskDelete(NULL);
     // artNetReceiver.parse();
     artNetSettingsService.loop();
-    // stepperControlService.loop();
+    stepperControlService.loop();
 }

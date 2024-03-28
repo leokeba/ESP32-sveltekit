@@ -29,6 +29,10 @@ StepperControlService::StepperControlService(PsychicHttpServer *server,
     _stepperArtNetSettingsService->addUpdateHandler([&](const String &originId)
                                                 { configureArtNet(); },
                                                 false);
+    
+    // _stepperSettingsService->addUpdateHandler([&](const String &originId)
+    //                                             { onConfigUpdated(originId); },
+    //                                             false);
 
     addUpdateHandler([&](const String &originId)
                      { onConfigUpdated(originId); },
@@ -55,13 +59,14 @@ void StepperControlService::loop() {
 
 void StepperControlService::onConfigUpdated(const String &originId)
 {
+    // _state.settings = _stepperSettingsService->getState();
     if (originId != "driver") {
         Serial.println(originId);
         if (_state.isEnabled & !_stepper->enabled) _stepper->enable();
         else if(!_state.isEnabled & _stepper->enabled) _stepper->disable();
-        _stepper->setAcceleration(_state.acceleration * _stepperSettingsService->getMaxAccel() / 1024);
-        _stepper->setSpeed((_state.direction ? _state.speed : -_state.speed) * _stepperSettingsService->getMaxSpeed() / 1024 );
-        if (abs(_state.newMove)>0) _stepper->move(_state.newMove * 200 / 1024);
+        _stepper->setAcceleration(_state.acceleration);
+        _stepper->setSpeed(_state.direction ? _state.speed : -_state.speed);
+        if (abs(_state.newMove)>0.01) _stepper->move(_state.newMove*360.);
     }
 }
 

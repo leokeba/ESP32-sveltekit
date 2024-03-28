@@ -25,9 +25,6 @@
 
 	let stepperControl: StepperControl = { isEnabled: false, direction: false, speed: 128, move: 0, acceleration: 30 };
 
-	let lightOn = false;
-	let lightBrightness = 128;
-
 	const ws_token = $page.data.features.security ? '?access_token=' + $user.bearer_token : '';
 
 	const stepperControlSocket = new WebSocket('ws://' + $page.url.host + '/ws/stepperControl' + ws_token);
@@ -160,12 +157,14 @@
 			<input 
 				type="range"
 				min="0" 
-				max="1024" 
+				max="1" 
+				step="0.01"
 				class="range range-primary"
 				id="speed"
 				bind:value={stepperControl.speed}
 				on:change={() => {
-					stepperControlSocket.send(JSON.stringify(stepperControl));
+					stepperControlSocket.send(JSON.stringify({speed:stepperControl.speed}));
+					console.log(JSON.stringify({speed:stepperControl.speed}));
 				}}
 			/>
 			<label class="label cursor-pointer" for="move">
@@ -174,11 +173,12 @@
 			<input 
 				type="range"
 				min="0" 
-				max="1024" 
+				max="1" 
+				step="0.01"
 				class="range range-primary"
 				id="move"
 				bind:value={stepperControl.move}
-				on:change={() => {
+				on:input={() => {
 					stepperControlSocket.send(JSON.stringify(stepperControl));
 				}}
 			/>
@@ -188,7 +188,8 @@
 			<input 
 				type="range"
 				min="0" 
-				max="1024" 
+				max="1" 
+				step="0.01"
 				class="range range-primary"
 				id="acceleration"
 				bind:value={stepperControl.acceleration}

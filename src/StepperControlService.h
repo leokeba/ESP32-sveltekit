@@ -22,10 +22,11 @@ class StepperControl
 public:
     bool isEnabled;
     bool direction;
-    int32_t move;
-    int32_t newMove;
-    int32_t speed;
-    uint32_t acceleration;
+    float move;
+    float newMove;
+    float speed;
+    float acceleration;
+    // StepperSettings settings;
 
     static void read(StepperControl &settings, JsonObject &root)
     {
@@ -34,16 +35,22 @@ public:
         root["move"] = settings.move;
         root["speed"] = settings.speed;
         root["acceleration"] = settings.acceleration;
+        // Serial.print("Read : ");
+        // Serial.println(float(root["speed"]));
     }
 
     static StateUpdateResult update(JsonObject &root, StepperControl &settings)
     {   
-        settings.isEnabled = root["isEnabled"];
-        settings.direction = root["direction"];
-        settings.newMove = settings.move - int32_t(root["move"]);
-        settings.move = root["move"];
-        settings.speed = root["speed"];
-        settings.acceleration = root["acceleration"];
+        if (root["isEnabled"].is<bool>()) settings.isEnabled = root["isEnabled"];
+        if (root["direction"].is<bool>()) settings.direction = root["direction"];
+        if (root["move"].is<float>()) {
+            settings.newMove = settings.move - float(root["move"]);
+            settings.move = root["move"];
+        }
+        if (root["speed"].is<float>()) settings.speed = root["speed"];
+        if (root["acceleration"].is<float>()) settings.acceleration = root["acceleration"];
+        // Serial.print("Update : ");
+        // Serial.println(float(root["speed"]));
         return StateUpdateResult::CHANGED;
     }
 
@@ -52,17 +59,21 @@ public:
     static void dmxRead(DmxFrame &data, JsonObject &root) {
         root["isEnabled"] = data.data[0] > 127;
         root["direction"] = data.data[1] > 127;
-        root["speed"] = data.data[2];
-        root["move"] = data.data[3];
-        root["acceleration"] = data.data[4];
+        root["speed"] = data.data[2] / 255.;
+        // Serial.print("Read DMX : ");
+        // Serial.println(float(root["speed"]));
+        root["move"] = data.data[3] / 255.;
+        root["acceleration"] = data.data[4] / 255.;
     }
 
     static void readState(TMC5160Controller *stepper, StepperSettingsService *stepperSettingsService, JsonObject &root) {
         root["isEnabled"] = stepper->enabled;
         root["direction"] = stepper->getSpeed() >= 0;
         // root["move"] = stepper->move();
-        root["speed"] = abs(stepper->getSpeed() * 1024 / stepperSettingsService->getMaxSpeed());
-        root["acceleration"] = stepper->getAcceleration() * 1024 / stepperSettingsService->getMaxAccel();
+        root["speed"] = abs(stepper->getSpeed());
+        // Serial.print("Read State : ");
+        // Serial.println(float(root["speed"]));
+        root["acceleration"] = stepper->getAcceleration();
     }
 };
 
