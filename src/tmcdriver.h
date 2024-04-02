@@ -188,6 +188,10 @@ struct TMC5160Controller {
         return mod(stepper->targetPos()*360./double(microsteps), 360.);
     }
 
+    uint32_t getStatus() {
+        return driver.DRV_STATUS();
+    }
+
     void enable() {
         // digitalWrite(ST_EN, LOW);
         driver.toff(3);

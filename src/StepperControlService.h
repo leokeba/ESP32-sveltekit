@@ -26,6 +26,8 @@ public:
     float newMove;
     float speed;
     float acceleration;
+    uint32_t status;
+    uint8_t version;
     // StepperSettings settings;
 
     static void read(StepperControl &settings, JsonObject &root)
@@ -35,8 +37,10 @@ public:
         root["move"] = settings.move;
         root["speed"] = settings.speed;
         root["acceleration"] = settings.acceleration;
+        root["status"] = settings.status;
+        root["version"] = settings.version;
         // Serial.print("Read : ");
-        // Serial.println(float(root["speed"]));
+        // Serial.println(settings.status);
     }
 
     static StateUpdateResult update(JsonObject &root, StepperControl &settings)
@@ -63,6 +67,14 @@ public:
             settings.acceleration = root["acceleration"];
             hasChanged = true;
         }
+        if (root["status"].is<uint32_t>() && settings.status != root["status"]) {
+            settings.status = root["status"];
+            hasChanged = true;
+        }
+        if (root["version"].is<uint8_t>() && settings.version != root["version"]) {
+            settings.version = root["version"];
+            hasChanged = true;
+        }
         // Serial.print("Update : ");
         // Serial.println(float(root["speed"]));
         if (hasChanged) return StateUpdateResult::CHANGED;
@@ -83,12 +95,15 @@ public:
 
     static void readState(TMC5160Controller *stepper, StepperSettingsService *stepperSettingsService, JsonObject &root) {
         root["isEnabled"] = stepper->enabled;
-        root["direction"] = stepper->getSpeed() >= 0;
+        if (abs(stepper->getSpeed()) > 0.001) root["direction"] = stepper->getSpeed() >= 0;
         // root["move"] = stepper->move();
         root["speed"] = abs(stepper->getSpeed());
         // Serial.print("Read State : ");
         // Serial.println(float(root["speed"]));
         root["acceleration"] = stepper->getAcceleration();
+        root["status"] = stepper->getStatus();
+        root["version"] = stepper->driver.version();
+        // Serial.println(stepper->getStatus());
     }
 };
 

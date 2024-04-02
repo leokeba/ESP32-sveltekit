@@ -14,6 +14,8 @@
 	import Spinner from '$lib/components/Spinner.svelte';
 	import { slide } from 'svelte/transition';
 	import { cubicOut } from 'svelte/easing';
+	import { error } from '@sveltejs/kit';
+	import { load } from '../+layout';
 
 	type StepperControl = {
 		isEnabled: boolean;
@@ -21,17 +23,48 @@
 		speed: number;
 		move: number;
 		acceleration: number;
+		status: number;
+		version: number;
 	};
 
-	let stepperControl: StepperControl = { isEnabled: false, direction: false, speed: 128, move: 0, acceleration: 30 };
+	let stepperControl: StepperControl = { isEnabled: false, direction: false, speed: 128, move: 0, acceleration: 30, status:0, version: 0 };
+
+	type StepperStatus = {
+		stst: boolean;
+		olb: boolean;
+		ola: boolean;
+		s2gb: boolean;
+		s2ga: boolean;
+		s2vsb: boolean;
+		s2vsa: boolean;
+		otpw: boolean;
+		ot: boolean;
+		connected: boolean;
+	}
+
+	let stepperStatus: StepperStatus = {stst: false, olb: false, ola: false, s2gb: false, s2ga: false, s2vsb: false, s2vsa: false, otpw: false, ot: false, connected: false};
+
+	let statusInfoClass: string;
+	$: statusInfoClass = stepperStatus.connected ? ((stepperStatus.ola || stepperStatus.olb || stepperStatus.otpw || stepperStatus.ot || stepperStatus.s2ga || stepperStatus.s2gb || stepperStatus.s2vsa || stepperStatus.s2vsb) ? 'alert-warning' : 'alert-info') : 'alert-warning';
+
+	function readStatus() {
+		let mainFlags = stepperControl.status >>> 24;
+		stepperStatus.stst = (mainFlags & 0b10000000) > 0;
+		stepperStatus.olb = (mainFlags & 0b01000000) > 0;
+		stepperStatus.ola = (mainFlags & 0b00100000) > 0;
+		stepperStatus.s2gb = (mainFlags & 0b00010000) > 0;
+		stepperStatus.s2ga = (mainFlags & 0b00001000) > 0;
+		stepperStatus.otpw = (mainFlags & 0b00000100) > 0;
+		let otherFlags = stepperControl.status >>> 24;
+		stepperStatus.s2vsb = (otherFlags & 0b10) > 0;
+		stepperStatus.s2vsa = (otherFlags & 0b01) > 0;
+		stepperStatus.connected = !(stepperControl.version == 0 || stepperControl.version == 255);
+		console.log(stepperStatus);
+	}
 
 	const ws_token = $page.data.features.security ? '?access_token=' + $user.bearer_token : '';
 
 	const stepperControlSocket = new WebSocket('ws://' + $page.url.host + '/ws/stepperControl' + ws_token);
-
-	stepperControlSocket.onopen = (event) => {
-		stepperControlSocket.send('Hello');
-	};
 
 	stepperControlSocket.addEventListener('close', (event) => {
 		const closeCode = event.code;
@@ -45,6 +78,7 @@
 		const message = JSON.parse(event.data);
 		if (message.type != 'id') {
 			stepperControl = message;
+			readStatus();
 		}
 	};
 
@@ -126,6 +160,30 @@
 	<Stepper slot="icon" class="flex-shrink-0 mr-2 h-6 w-6 self-end" />
 	<span slot="title">Stepper Control</span>
 	<div class="w-full">
+		<div class="alert {statusInfoClass} my-2 shadow-lg">
+			<Info class="h-6 w-6 flex-shrink-0 stroke-current" />
+			<span>
+				Stepper driver {stepperStatus.connected ? 'connected and ' + stepperControl.isEnabled ? 'enabled' : 'disabled' : 'disconnected'} !
+				{#if !stepperStatus.connected}
+				<br> Communication error, check the driver and power supply connexions.
+				{:else}
+					{#if stepperStatus.ola || stepperStatus.olb}
+					<br> Open load detected, check motor connexions.
+					{/if}
+					{#if stepperStatus.s2ga || stepperStatus.s2gb}
+					<br> Short circuit to ground detected, check motor connexions.
+					{/if}
+					{#if stepperStatus.s2vsa || stepperStatus.s2vsb}
+					<br> Short circuit to supply detected, check motor connexions.
+					{/if}
+					{#if stepperStatus.ot}
+					<br> Driver is too hot, let it cool down and retry.
+					{:else if stepperStatus.otpw}
+					<br> Driver temperature pre-warning, you may want to try lowering the current and/or reducing the load.
+					{/if}
+				{/if}
+			</span>
+		</div>
 		<div class="w-full grid grid-flow-row grid-form items-center">
 			<label class="label cursor-pointer" for="enable">
 				<span class="">Enable</span>
