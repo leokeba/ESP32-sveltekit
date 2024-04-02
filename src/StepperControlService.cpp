@@ -66,7 +66,10 @@ void StepperControlService::onConfigUpdated(const String &originId)
         else if(!_state.isEnabled & _stepper->enabled) _stepper->disable();
         _stepper->setAcceleration(_state.acceleration);
         _stepper->setSpeed(_state.direction ? _state.speed : -_state.speed);
-        if (abs(_state.newMove)>0.01) _stepper->move(_state.newMove*360.);
+        if (abs(_state.newMove)>0.001) {
+            _stepper->move(_state.newMove*360.);
+            _state.newMove = 0;
+        }
     }
 }
 

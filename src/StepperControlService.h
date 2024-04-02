@@ -40,18 +40,33 @@ public:
     }
 
     static StateUpdateResult update(JsonObject &root, StepperControl &settings)
-    {   
-        if (root["isEnabled"].is<bool>()) settings.isEnabled = root["isEnabled"];
-        if (root["direction"].is<bool>()) settings.direction = root["direction"];
-        if (root["move"].is<float>()) {
+    {
+        bool hasChanged = false;
+        if (root["isEnabled"].is<bool>() && settings.isEnabled != root["isEnabled"]) {
+            settings.isEnabled = root["isEnabled"];
+            hasChanged = true;
+        }
+        if (root["direction"].is<bool>() && settings.direction != root["direction"]) {
+            settings.direction = root["direction"];
+            hasChanged = true;
+        }
+        if (root["move"].is<float>() && abs(settings.move - float(root["move"])) > 0.01) {
             settings.newMove = settings.move - float(root["move"]);
             settings.move = root["move"];
+            hasChanged = true;
         }
-        if (root["speed"].is<float>()) settings.speed = root["speed"];
-        if (root["acceleration"].is<float>()) settings.acceleration = root["acceleration"];
+        if (root["speed"].is<float>() && abs(settings.speed - float(root["speed"])) > 0.01) {
+            settings.speed = root["speed"];
+            hasChanged = true;
+        }
+        if (root["acceleration"].is<float>() &&  abs(settings.acceleration - float(root["acceleration"])) > 0.01) {
+            settings.acceleration = root["acceleration"];
+            hasChanged = true;
+        }
         // Serial.print("Update : ");
         // Serial.println(float(root["speed"]));
-        return StateUpdateResult::CHANGED;
+        if (hasChanged) return StateUpdateResult::CHANGED;
+        else return StateUpdateResult::UNCHANGED;
     }
 
     static const uint16_t dmxChannels = 5;

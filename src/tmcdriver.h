@@ -124,12 +124,14 @@ struct TMC5160Controller {
 
     void setSpeed(double sp) {
         sp = min(max(-1., sp), 1.);
-        Serial.print("Set : ");
-        Serial.println(sp);
-        if (sp != 0) setMaxSpeed(abs(sp*maxSpeed));
+        // Serial.print("Set : ");
+        // Serial.println(sp);
         if (sp == 0) stepper->stopMove();
-        else if (sp < 0) stepper->runBackward();
-        else stepper->runForward();
+        else {
+            setMaxSpeed(abs(sp*maxSpeed));
+            if (sp < 0) stepper->runBackward();
+            else stepper->runForward();
+        }
     }
 
     double getSpeed() {
