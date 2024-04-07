@@ -11,5 +11,7 @@ export const load = (async () => {
 		features: item,
 		title: 'ESP32 Motion Controller',
 		github: 'leokeba/ESP32-sveltekit'
+		copyright: '2024 leokeba',
+		appName: 'ESP32 Motion Controller'
 	};
 }) satisfies LayoutLoad;
