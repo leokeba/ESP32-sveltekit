@@ -59,7 +59,7 @@
 		stepperStatus.s2vsb = (otherFlags & 0b10) > 0;
 		stepperStatus.s2vsa = (otherFlags & 0b01) > 0;
 		stepperStatus.connected = !(stepperControl.version == 0 || stepperControl.version == 255);
-		console.log(stepperStatus);
+		// console.log(stepperStatus);
 	}
 
 	const ws_token = $page.data.features.security ? '?access_token=' + $user.bearer_token : '';
@@ -222,7 +222,7 @@
 				bind:value={stepperControl.speed}
 				on:change={() => {
 					stepperControlSocket.send(JSON.stringify({speed:stepperControl.speed}));
-					console.log(JSON.stringify({speed:stepperControl.speed}));
+					// console.log(JSON.stringify({speed:stepperControl.speed}));
 				}}
 			/>
 			<label class="label cursor-pointer" for="move">
