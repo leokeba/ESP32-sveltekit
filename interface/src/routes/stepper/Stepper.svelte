@@ -25,9 +25,10 @@
 		acceleration: number;
 		status: number;
 		version: number;
+		socketConnected: boolean;
 	};
 
-	let stepperControl: StepperControl = { isEnabled: false, direction: false, speed: 128, move: 0, acceleration: 30, status:0, version: 0 };
+	let stepperControl: StepperControl = { isEnabled: false, direction: false, speed: 128, move: 0, acceleration: 30, status:0, version: 0, socketConnected: true};
 
 	type StepperStatus = {
 		stst: boolean;
@@ -65,6 +66,7 @@
 	const ws_token = $page.data.features.security ? '?access_token=' + $user.bearer_token : '';
 
 	const stepperControlSocket = new WebSocket('ws://' + $page.url.host + '/ws/stepperControl' + ws_token);
+	let socketConnected = false;
 
 	stepperControlSocket.addEventListener('close', (event) => {
 		const closeCode = event.code;
@@ -72,7 +74,12 @@
 		console.log('WebSocket closed with code:', closeCode);
 		console.log('Close reason:', closeReason);
 		notifications.error('Websocket disconnected', 5000);
+		socketConnected = false;
 	});
+
+	stepperControlSocket.onopen = (event) => {
+		socketConnected = true;
+	};
 
 	stepperControlSocket.onmessage = (event) => {
 		const message = JSON.parse(event.data);
@@ -160,6 +167,7 @@
 	<Stepper slot="icon" class="flex-shrink-0 mr-2 h-6 w-6 self-end" />
 	<span slot="title">Stepper Control</span>
 	<div class="w-full">
+		{#if socketConnected}
 		<div class="alert {statusInfoClass} my-2 shadow-lg">
 			<Info class="h-6 w-6 flex-shrink-0 stroke-current" />
 			<span>
@@ -280,6 +288,16 @@
 				</div>
 			</div>
 		</div>
+		{:else}
+		<div class="alert alert-warning my-2 shadow-lg">
+			<Info class="h-6 w-6 flex-shrink-0 stroke-current" />
+			<span>
+				WebSocket Disconnected !
+				<br>
+				Too many clients or device unreacheable.
+			</span>
+		</div>
+		{/if}
 	</div>
 	<!-- {#if !$page.data.features.security || $user.admin}
 	<Collapsible open={false} class="shadow-lg">
