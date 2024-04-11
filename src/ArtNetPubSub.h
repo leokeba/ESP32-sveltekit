@@ -53,10 +53,11 @@ public:
     }
 
     void recvCallback(const uint8_t *data, uint16_t size, const ArtDmxMetadata &metadata, const ArtNetRemoteInfo &remote) {
-        const uint16_t end = min(size, uint16_t(address+length));
+        const uint16_t start = max(uint16_t(0), uint16_t(address-1));
+        const uint16_t end = min(size, uint16_t(start+length));
         uint8_t newData[length] = {};
-        for (int i = address; i < end; i++) {
-            newData[i-address] = data[i];
+        for (int i = start; i < end; i++) {
+            newData[i-start] = data[i];
         }
         DmxFrame dmxFrame = {newData, length};
         DynamicJsonDocument json(4096);

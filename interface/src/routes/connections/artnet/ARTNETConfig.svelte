@@ -101,8 +101,8 @@
 						</label>
 						<input
 							type="number"
-							min="0"
-							max="511"
+							min="1"
+							max="508"
 							class="input input-bordered invalid:border-error w-full invalid:border-2}"
 							bind:value={artNetSettings.channel}
 							id="channel"
