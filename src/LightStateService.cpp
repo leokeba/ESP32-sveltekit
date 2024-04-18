@@ -15,39 +15,37 @@
 #include <LightStateService.h>
 
 LightStateService::LightStateService(PsychicHttpServer *server,
+                                     EventSocket *socket,
                                      SecurityManager *securityManager,
 
 #if FT_MQTT
                                      PsychicMqttClient *mqttClient,
-                                     LightMqttSettingsService *lightMqttSettingsService,
-#endif
-                                     LightArtNetSettingsService *lightArtNetSettingsService,
-                                     ArtnetWiFiReceiver *artNetReceiver) :                  
-                                                                            _httpEndpoint(LightState::read,
-                                                                                            LightState::update,
-                                                                                            this,
-                                                                                            server,
-                                                                                            LIGHT_SETTINGS_ENDPOINT_PATH,
-                                                                                            securityManager,
-                                                                                            AuthenticationPredicates::IS_AUTHENTICATED),
-                                                                            _webSocketServer(LightState::read,
-                                                                                                LightState::update,
-                                                                                                this,
-                                                                                                server,
-                                                                                                LIGHT_SETTINGS_SOCKET_PATH,
-                                                                                                securityManager,
-                                                                                                AuthenticationPredicates::IS_AUTHENTICATED),
-#if FT_MQTT
-                                                                            _mqttClient(mqttClient),
-                                                                            _lightMqttSettingsService(lightMqttSettingsService),
-                                                                            _mqttPubSub(LightState::homeAssistRead, LightState::homeAssistUpdate, this, mqttClient),
-#endif
-                                                                            _lightArtNetSettingsService(lightArtNetSettingsService),
-                                                                            _artNetPubSub(LightState::dmxRead, LightState::read, LightState::update, this, artNetReceiver)
-/*  _webSocketClient(LightState::read,
-                   LightState::update,
-                   this,
-                   LIGHT_SETTINGS_SOCKET_PATH)*/
+                                     LightMqttSettingsService *lightMqttSettingsService) : _httpEndpoint(LightState::read,
+                                                                                                         LightState::update,
+                                                                                                         this,
+                                                                                                         server,
+                                                                                                         LIGHT_SETTINGS_ENDPOINT_PATH,
+                                                                                                         securityManager,
+                                                                                                         AuthenticationPredicates::IS_AUTHENTICATED),
+                                                                                           _eventEndpoint(LightState::read,
+                                                                                                          LightState::update,
+                                                                                                          this,
+                                                                                                          socket,
+                                                                                                          LIGHT_SETTINGS_EVENT,
+                                                                                                          LIGHT_SETTINGS_MAX_BUFFER_SIZE),
+                                                                                           _mqttEndpoint(LightState::homeAssistRead,
+                                                                                                         LightState::homeAssistUpdate,
+                                                                                                         this,
+                                                                                                         mqttClient),
+                                                                                           _webSocketServer(LightState::read,
+                                                                                                            LightState::update,
+                                                                                                            this,
+                                                                                                            server,
+                                                                                                            LIGHT_SETTINGS_SOCKET_PATH,
+                                                                                                            securityManager,
+                                                                                                            AuthenticationPredicates::IS_AUTHENTICATED),
+                                                                                           _mqttClient(mqttClient),
+                                                                                           _lightMqttSettingsService(lightMqttSettingsService)
 {
     // configure led to be output
     pinMode(LED_BUILTIN, OUTPUT);
@@ -76,7 +74,6 @@ LightStateService::LightStateService(PsychicHttpServer *server,
 void LightStateService::begin()
 {
     _httpEndpoint.begin();
-    _webSocketServer.begin();
     _artNetPubSub.begin();
     _state.ledOn = DEFAULT_LED_STATE;
     _state.brightness = DEFAULT_BRIGHTNESS;
@@ -118,7 +115,7 @@ void LightStateService::registerConfig()
     serializeJson(doc, payload);
     _mqttClient->publish(configTopic.c_str(), 0, false, payload.c_str());
 
-    _mqttPubSub.configureTopics(pubTopic, subTopic);
+    _mqttEndpoint.configureTopics(pubTopic, subTopic);
 }
 #endif
 

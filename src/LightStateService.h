@@ -22,7 +22,10 @@
 
 #include <LightArtNetSettingsService.h>
 
+#include <EventSocket.h>
 #include <HttpEndpoint.h>
+#include <MqttEndpoint.h>
+#include <EventEndpoint.h>
 #include <WebSocketServer.h>
 // #include <WebSocketClient.h>
 #include <ArtNetPubSub.h>
@@ -34,6 +37,8 @@
 
 #define LIGHT_SETTINGS_ENDPOINT_PATH "/rest/lightState"
 #define LIGHT_SETTINGS_SOCKET_PATH "/ws/lightState"
+#define LIGHT_SETTINGS_EVENT "led"
+#define LIGHT_SETTINGS_MAX_BUFFER_SIZE 256
 
 class LightState
 {
@@ -101,11 +106,9 @@ public:
 class LightStateService : public StatefulService<LightState>
 {
 public:
-    LightStateService(PsychicHttpServer *server,
-                      SecurityManager *securityManager,
+    LightStateService(PsychicHttpServer *server, EventSocket *socket, SecurityManager *securityManager,
 #if FT_MQTT
-                      PsychicMqttClient *mqttClient,
-                      LightMqttSettingsService *lightMqttSettingsService,
+                      PsychicMqttClient *mqttClient, LightMqttSettingsService *lightMqttSettingsService,
 #endif
                       LightArtNetSettingsService *lightArtNetSettingsService,
                       ArtnetWiFiReceiver *artNetReceiver);
@@ -113,8 +116,9 @@ public:
 
 private:
     HttpEndpoint<LightState> _httpEndpoint;
+    EventEndpoint<LightState> _eventEndpoint;
+    MqttEndpoint<LightState> _mqttEndpoint;
     WebSocketServer<LightState> _webSocketServer;
-    //  WebSocketClient<LightState> _webSocketClient;
     ArtNetPubSub<LightState> _artNetPubSub;
 #if FT_MQTT
     MqttPubSub<LightState> _mqttPubSub;
