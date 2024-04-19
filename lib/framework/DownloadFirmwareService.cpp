@@ -24,7 +24,7 @@ void update_started()
     String output;
     doc["status"] = "preparing";
     serializeJson(doc, output);
-    _socket->emit("download_ota", output.c_str());
+    // _socket->emit("download_ota", output.c_str());
 }
 
 void update_progress(int currentBytes, int totalBytes)
@@ -35,7 +35,7 @@ void update_progress(int currentBytes, int totalBytes)
     if (progress > previousProgress)
     {
         doc["progress"] = progress;
-        _socket->emit("download_ota", output.c_str());
+        // _socket->emit("download_ota", output.c_str());
         ESP_LOGV("Download OTA", "HTTP update process at %d of %d bytes... (%d %%)", currentBytes, totalBytes, progress);
     }
     previousProgress = progress;
@@ -46,7 +46,7 @@ void update_finished()
     String output;
     doc["status"] = "finished";
     serializeJson(doc, output);
-    _socket->emit("download_ota", output.c_str());
+    // _socket->emit("download_ota", output.c_str());
 
     // delay to allow the event to be sent out
     vTaskDelay(100 / portTICK_PERIOD_MS);
@@ -76,7 +76,7 @@ void updateTask(void *param)
         doc["status"] = "error";
         doc["error"] = httpUpdate.getLastErrorString().c_str();
         serializeJson(doc, output);
-        _socket->emit("download_ota", output.c_str());
+        // _socket->emit("download_ota", output.c_str());
 
         ESP_LOGE("Download OTA", "HTTP Update failed with error (%d): %s", httpUpdate.getLastError(), httpUpdate.getLastErrorString().c_str());
 #ifdef SERIAL_INFO
@@ -88,7 +88,7 @@ void updateTask(void *param)
         doc["status"] = "error";
         doc["error"] = "Update failed, has same firmware version";
         serializeJson(doc, output);
-        _socket->emit("download_ota", output.c_str());
+        // _socket->emit("download_ota", output.c_str());
 
         ESP_LOGE("Download OTA", "HTTP Update failed, has same firmware version");
 #ifdef SERIAL_INFO
@@ -143,8 +143,7 @@ esp_err_t DownloadFirmwareService::downloadUpdate(PsychicRequest *request, JsonV
 
     String output;
     serializeJson(doc, output);
-
-    _socket->emit("download_ota", output.c_str());
+    _notificationEvents->send(output, "download_ota", millis());
 
     if (xTaskCreatePinnedToCore(
             &updateTask,                // Function that should be called

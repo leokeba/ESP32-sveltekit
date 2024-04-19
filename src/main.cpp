@@ -13,8 +13,6 @@
  **/
 
 #include <ESP32SvelteKit.h>
-#include <LightMqttSettingsService.h>
-#include <LightStateService.h>
 #include <PsychicHttpServer.h>
 #include <ArtNetStatus.h>
 // #include <ArtNetDataService.h>
@@ -36,15 +34,6 @@ TMC5160Controller stepper1 = {driver1, engine, 21, 17, EN_PIN};
 // TMC5160Controller stepper2 = {driver2, STEP_PIN, DIR_PIN, EN_PIN};
 
 
-#if FT_ENABLED(FT_MQTT)
-LightMqttSettingsService lightMqttSettingsService =
-    LightMqttSettingsService(&server, esp32sveltekit.getFS(), esp32sveltekit.getSecurityManager());
-#endif
-
-// LightArtNetSettingsService lightArtNetSettingsService =
-//     LightArtNetSettingsService(&server, esp32sveltekit.getFS(), esp32sveltekit.getSecurityManager());
-
-
 StepperArtNetSettingsService stepperArtNetSettingsService =
     StepperArtNetSettingsService(&server, esp32sveltekit.getFS(), esp32sveltekit.getSecurityManager());
 
@@ -59,16 +48,6 @@ StepperControlService stepperControlService = StepperControlService(&server,
                                                         &artNetReceiver,
                                                         &stepper1
 );
-
-// LightStateService lightStateService = LightStateService(&server,
-//                                                         esp32sveltekit.getSecurityManager(),
-// #if FT_ENABLED(FT_MQTT)
-//                                                         esp32sveltekit.getMqttClient(),
-//                                                         &lightMqttSettingsService,
-// #endif
-//                                                         &lightArtNetSettingsService,
-//                                                         &artNetReceiver
-// );
 
 ArtNetSettingsService artNetSettingsService = ArtNetSettingsService(&server,
                                                                     esp32sveltekit.getFS(),
@@ -97,14 +76,6 @@ void setup()
     stepper1.init();
     
     // artNetReceiver.begin();
-
-    // load the initial light settings
-#if FT_ENABLED(FT_MQTT)
-    lightMqttSettingsService.begin();
-#endif
-    // lightArtNetSettingsService.begin();
-    // start the light service
-    // lightStateService.begin();
 
     // artNetDataService.begin();
 
