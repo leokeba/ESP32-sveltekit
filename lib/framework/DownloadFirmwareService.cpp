@@ -143,7 +143,8 @@ esp_err_t DownloadFirmwareService::downloadUpdate(PsychicRequest *request, JsonV
 
     String output;
     serializeJson(doc, output);
-    _notificationEvents->send(output, "download_ota", millis());
+
+    // _socket->emit("download_ota", output.c_str());
 
     if (xTaskCreatePinnedToCore(
             &updateTask,                // Function that should be called
