@@ -4,6 +4,10 @@ All notable changes to this project will be documented in this file.
 
 ## [0.3.1] - Work in Progress
 
+This minor upgrade might require one minor change as `MqttPubSub.h` and its class had been renamed to `MqttEndpoint.h`. However, it is strongly advised, that you change all existing WebSocketServer endpoints to the new event socket system.
+
+The new Event Socket system is likely to change with coming updates.
+
 ### Added
 
 - Added build flag `-D SERIAL_INFO` to platformio.ini to enable / disable all `Serial.print()` statements. On some boards with native USB those Serial prints have been reported to block and make the server unresponsive.
