@@ -132,7 +132,7 @@
 					class="range range-primary"
 					bind:value={lightState.brightness}
 					on:change={() => {
-						socket.sendEvent('led', lightState);
+						lightStateSocket.send(JSON.stringify(lightState));
 					}}
 				/>
 			</label>
