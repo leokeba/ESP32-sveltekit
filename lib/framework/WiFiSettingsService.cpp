@@ -6,7 +6,7 @@
  *   https://github.com/theelims/ESP32-sveltekit
  *
  *   Copyright (C) 2018 - 2023 rjwats
- *   Copyright (C) 2023 theelims
+ *   Copyright (C) 2023 - 2024 theelims
  *
  *   All Rights Reserved. This software may be modified and distributed under
  *   the terms of the LGPL v3 license. See the LICENSE file for details.
@@ -20,7 +20,7 @@ WiFiSettingsService::WiFiSettingsService(PsychicHttpServer *server,
                                          EventSocket *socket) : _server(server),
                                                                 _securityManager(securityManager),
                                                                 _httpEndpoint(WiFiSettings::read, WiFiSettings::update, this, server, WIFI_SETTINGS_SERVICE_PATH, securityManager,
-                                                                              AuthenticationPredicates::IS_ADMIN, WIFI_SETTINGS_BUFFER_SIZE),
+                                                                              AuthenticationPredicates::IS_ADMIN),
                                                                 _fsPersistence(WiFiSettings::read, WiFiSettings::update, this, fs, WIFI_SETTINGS_FILE), _lastConnectionAttempt(0),
                                                                 _socket(socket)
 {
@@ -49,7 +49,7 @@ void WiFiSettingsService::initWiFi()
 
 void WiFiSettingsService::begin()
 {
-    _socket->registerEvent("rssi");
+    _socket->registerEvent(EVENT_RSSI);
 
     _httpEndpoint.begin();
 }
@@ -214,9 +214,11 @@ void WiFiSettingsService::configureNetwork(wifi_settings_t &network)
 
 void WiFiSettingsService::updateRSSI()
 {
-    char buffer[16];
-    snprintf(buffer, sizeof(buffer), WiFi.isConnected() ? "%d" : "disconnected", WiFi.RSSI());
-    _socket->emit("rssi", buffer);
+    JsonDocument doc;
+    doc["rssi"] = WiFi.RSSI();
+    doc["ssid"] = WiFi.isConnected() ? WiFi.SSID() : "disconnected";
+    JsonObject jsonObject = doc.as<JsonObject>();
+    _socket->emitEvent(EVENT_RSSI, jsonObject);
 }
 
 void WiFiSettingsService::onStationModeDisconnected(WiFiEvent_t event, WiFiEventInfo_t info)

@@ -24,6 +24,7 @@ ESP32SvelteKit::ESP32SvelteKit(PsychicHttpServer *server, unsigned int numberEnd
                                                                                           _apSettingsService(server, &ESPFS, &_securitySettingsService),
                                                                                           _apStatus(server, &_securitySettingsService, &_apSettingsService),
                                                                                           _socket(server, &_securitySettingsService, AuthenticationPredicates::IS_AUTHENTICATED),
+                                                                                          _notificationService(&_socket),
 #if FT_ENABLED(FT_NTP)
                                                                                           _ntpSettingsService(server, &ESPFS, &_securitySettingsService),
                                                                                           _ntpStatus(server, &_securitySettingsService),
@@ -110,9 +111,6 @@ void ESP32SvelteKit::begin()
             // request->redirect(url.c_str());
         } });
 #endif
-#ifdef SERVE_CONFIG_FILES
-    _server->serveStatic("/config/", ESPFS, "/config/");
-#endif
 
     // Serve static resources from /config/ if set by platformio.ini
 #if SERVE_CONFIG_FILES
@@ -140,6 +138,7 @@ void ESP32SvelteKit::begin()
     // Start the services
     _apStatus.begin();
     _socket.begin();
+    _notificationService.begin();
     _apSettingsService.begin();
     _factoryResetService.begin();
     _featureService.begin();
