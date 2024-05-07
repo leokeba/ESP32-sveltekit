@@ -2,7 +2,7 @@
 
 All notable changes to this project will be documented in this file.
 
-## [0.5.0] - WIP
+## [0.5.0] - 2024-05-06
 
 Changes the Event Socket System to use a clearer message structure and MessagePack. Brings breaking changes to the `EventSocket.h` API.
 
@@ -29,6 +29,7 @@ Updates ArduinoJSON from v6 to v7 to increase the available free heap. If you ma
 
 - Fixes to WiFi.svelte and models.ts to fix type errors and visibility rights.
 - Fixes bug in highlighting the menu when navigating with the browser (back/forward)
+- Made WiFi connection routine more robust by using BSSID. Ensures that the STA truly connects to the strongest hotspot, even if several hotspots are in reach.
 
 ### Removed
 
