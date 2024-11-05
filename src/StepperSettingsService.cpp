@@ -51,10 +51,12 @@ MultiStepperSettings StepperSettingsService::getState() {
 void StepperSettingsService::onConfigUpdated()
 {
     for (int i = 0; i < _steppers.size(); i++) {
-        _steppers[i]->maxSpeed = _state.settings[i].maxSpeed;
-        _steppers[i]->maxAccel = _state.settings[i].maxAcceleration;
-        _steppers[i]->driver.rms_current(_state.settings[i].current);
-        _steppers[i]->driver.shaft(_state.settings[i].invertDirection);
+        auto settings = _state.settings[i];
+        auto stepper = *_steppers[i];
+        stepper.maxSpeed = settings.maxSpeed;
+        stepper.maxAccel = settings.maxAcceleration;
+        stepper.driver.rms_current(settings.current);
+        stepper.driver.shaft(settings.invertDirection);
     }
 }
 

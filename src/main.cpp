@@ -86,7 +86,7 @@ EncoderStateService encoderService = EncoderStateService(
     esp32sveltekit.getSocket(),
     &encoder1);
 
-ClosedLoopControllerSettingsService closedLoopControllerService = ClosedLoopControllerSettingsService(
+MultiClosedLoopControllerService closedLoopControllerService = MultiClosedLoopControllerService(
     esp32sveltekit.getSocket(),
     esp32sveltekit.getFS(),
     closedLoopControllers);

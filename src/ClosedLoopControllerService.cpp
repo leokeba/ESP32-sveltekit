@@ -1,18 +1,15 @@
 #include <ClosedLoopControllerService.h>
 
 ClosedLoopControllerStateService::ClosedLoopControllerStateService(EventSocket *socket,
-                                                                   std::vector<ClosedLoopController*>& controllers) :
-                                                                            _eventEndpoint(ClosedLoopControllerStates::read,
-                                                                                            ClosedLoopControllerStates::update,
+                                                                   ClosedLoopController* controller,
+                                                                   int index = 0) :
+                                                                            _eventEndpoint(ClosedLoopControllerState::read,
+                                                                                            ClosedLoopControllerState::update,
                                                                                             this,
                                                                                             socket,
-                                                                                            CL_CONTROLLER_STATE_EVENT),
-                                                                            _controllers(controllers)
+                                                                                            strdup((String(CL_CONTROLLER_STATE_EVENT)+String(index)).c_str())),
+                                                                            _controller(controller)
 {
-    for (ClosedLoopController *c : _controllers) {
-        ClosedLoopControllerState controller = ClosedLoopControllerState();
-        _state.controllers.push_back(controller);
-    }
     addUpdateHandler([&](const String &originId)
                      { onConfigUpdated(originId); },
                      false);
@@ -21,17 +18,14 @@ ClosedLoopControllerStateService::ClosedLoopControllerStateService(EventSocket *
 void ClosedLoopControllerStateService::begin()
 {
     _eventEndpoint.begin();
-    for (auto controller : _controllers) if (controller->enabled) controller->setAngle(controller->getAngle());
+    if (_controller->enabled) _controller->setAngle(_controller->getAngle());
     updateState();
     onConfigUpdated("begin");
 }
 
 void ClosedLoopControllerStateService::loop() {
-    bool changed = false;
-    for (int i = 0; i < _controllers.size(); i++) {
-        if (_controllers[i]->encoder.update()) changed = true;
-        _controllers[i]->run();
-    }
+    bool changed = _controller->encoder.update();
+    _controller->run();
     // if (changed) updateState();
     updateState();
 }
@@ -39,39 +33,33 @@ void ClosedLoopControllerStateService::loop() {
 void ClosedLoopControllerStateService::onConfigUpdated(const String &originId)
 {
     if (originId != "stateUpdate") {
-        for (int i = 0; i < _controllers.size(); i++) {
-            auto controller = _controllers[i];
-            auto state = _state.controllers[i];
-            controller->targetAngle = state.targetAngle;
-        }
+        _controller->targetAngle = _state.targetAngle;
     }
 }
 
 void ClosedLoopControllerStateService::updateState() {
     JsonDocument json;
     JsonObject jsonObject = json.to<JsonObject>();
-    _state.readState(_controllers, jsonObject);
+    _state.readState(_controller, jsonObject);
     update(jsonObject, _state.update, "stateUpdate");
 }
 
 ClosedLoopControllerSettingsService::ClosedLoopControllerSettingsService(EventSocket *socket,
                                                                          FS *fs,
-                                                                         std::vector<ClosedLoopController*>& controllers) :                  
-                                                                                _eventEndpoint(MultiClosedLoopControllerSettings::read,
-                                                                                                MultiClosedLoopControllerSettings::update,
+                                                                         ClosedLoopController* controller,
+                                                                         int index = 0) :                  
+                                                                                _eventEndpoint(ClosedLoopControllerSettings::read,
+                                                                                                ClosedLoopControllerSettings::update,
                                                                                                 this,
                                                                                                 socket,
-                                                                                                CL_CONTROLLER_SETTINGS_EVENT),
-                                                                                _fsPersistence(MultiClosedLoopControllerSettings::read, MultiClosedLoopControllerSettings::update, this, fs, CL_SETTINGS_FILE),
-                                                                                _controllers(controllers),
-                                                                                _closedLoopControllerStateService(socket, controllers)
+                                                                                                strdup((String(CL_CONTROLLER_SETTINGS_EVENT)+String(index)).c_str())),
+                                                                                _fsPersistence(ClosedLoopControllerSettings::read, 
+                                                                                                ClosedLoopControllerSettings::update, 
+                                                                                                this, 
+                                                                                                fs, 
+                                                                                                "/config/controllerSettings.json"),
+                                                                                _controller(controller)
 {
-
-    for (ClosedLoopController *s : controllers) {
-        ClosedLoopControllerSettings settings = ClosedLoopControllerSettings();
-        _state.settings.push_back(settings);
-    }
-
     // configure settings service update handler to update LED state
     addUpdateHandler([&](const String &originId)
                      { onConfigUpdated(); },
@@ -83,23 +71,44 @@ void ClosedLoopControllerSettingsService::begin()
     _eventEndpoint.begin();
     _fsPersistence.readFromFS();
     onConfigUpdated();
-    _closedLoopControllerStateService.begin();
-}
-
-void ClosedLoopControllerSettingsService::loop() {
-    _closedLoopControllerStateService.loop();
 }
 
 
 void ClosedLoopControllerSettingsService::onConfigUpdated()
 {
+    _controller->enabled = _state.enabled;
+    _controller->hasLimits = _state.hasLimits;
+    _controller->tolerance = _state.tolerance;
+    _controller->limitA = _state.limitA;
+    _controller->limitB = _state.limitB;
+}
+
+MultiClosedLoopControllerService::MultiClosedLoopControllerService(EventSocket *socket,
+                                                                   FS *fs,
+                                                                   std::vector<ClosedLoopController*>& controllers) :
+                                                                                _eventEndpoint(ClosedLoopControllerMap::read,
+                                                                                                ClosedLoopControllerMap::update,
+                                                                                                this,
+                                                                                                socket,
+                                                                                                CL_CONTROLLER_STATE_EVENT),
+                                                                                _controllers(controllers)
+
+{
     for (int i = 0; i < _controllers.size(); i++) {
-        auto controller = _controllers[i];
-        auto settings = _state.settings[i];
-        controller->enabled = settings.enabled;
-        controller->hasLimits = settings.hasLimits;
-        controller->tolerance = settings.tolerance;
-        controller->limitA = settings.limitA;
-        controller->limitB = settings.limitB;
+        auto stateService = ClosedLoopControllerStateService(socket, _controllers[i], i);
+        _stateServices.push_back(stateService);
+        auto settingsService = ClosedLoopControllerSettingsService(socket, fs, _controllers[i], i);
+        _settingsServices.push_back(settingsService);
     }
+}
+
+void MultiClosedLoopControllerService::begin()
+{
+    for (auto state : _stateServices) state.begin();
+    for (auto settings : _settingsServices) settings.begin();
+}
+
+void MultiClosedLoopControllerService::loop()
+{
+    // for (auto state : _stateServices) state.loop();
 }

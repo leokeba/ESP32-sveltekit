@@ -8,7 +8,7 @@
 
 #define CL_CONTROLLER_STATE_EVENT "controller"
 #define CL_CONTROLLER_SETTINGS_EVENT "controllersettings"
-#define CL_SETTINGS_FILE "/config/controllerSettings.json"
+#define CL_SETTINGS_FILE "/config/controllerSettings"
 
 class ClosedLoopControllerState
 {
@@ -72,18 +72,19 @@ public:
     }
 };
 
-class ClosedLoopControllerStateService : public StatefulService<ClosedLoopControllerStates>
+class ClosedLoopControllerStateService : public StatefulService<ClosedLoopControllerState>
 {
 public:
     ClosedLoopControllerStateService( EventSocket *socket,
-                                      std::vector<ClosedLoopController*>& controllers);
+                                      ClosedLoopController* controller,
+                                      int endpoint);
     void begin();
     void updateState();
     void loop();
 
 private:
-    EventEndpoint<ClosedLoopControllerStates> _eventEndpoint;
-    std::vector<ClosedLoopController*>& _controllers;
+    EventEndpoint<ClosedLoopControllerState> _eventEndpoint;
+    ClosedLoopController* _controller;
 
     void onConfigUpdated(const String &originId);
 };
@@ -148,21 +149,57 @@ public:
     }
 };
 
-class ClosedLoopControllerSettingsService : public StatefulService<MultiClosedLoopControllerSettings>
+class ClosedLoopControllerSettingsService : public StatefulService<ClosedLoopControllerSettings>
 {
 public:
     ClosedLoopControllerSettingsService(EventSocket *socket,
                                         FS *fs,
-                                        std::vector<ClosedLoopController*>& controllers);
+                                        ClosedLoopController* controller,
+                                        int index);
     void begin();
-    void loop();
 
 private:
-    EventEndpoint<MultiClosedLoopControllerSettings> _eventEndpoint;
-    FSPersistence<MultiClosedLoopControllerSettings> _fsPersistence;
-    std::vector<ClosedLoopController*>& _controllers;
-    ClosedLoopControllerStateService _closedLoopControllerStateService;
+    EventEndpoint<ClosedLoopControllerSettings> _eventEndpoint;
+    FSPersistence<ClosedLoopControllerSettings> _fsPersistence;
+    ClosedLoopController* _controller;
 
     void onConfigUpdated();
+};
+
+class ClosedLoopControllerMap
+{
+public:
+    std::vector<String> endpoints;
+
+    static void read(ClosedLoopControllerMap &state, JsonObject &root) {
+        JsonArray jsonArray = root["controllers"].to<JsonArray>();
+        for (String controller : state.endpoints) {
+            jsonArray.add(controller);
+        }
+    }
+
+    static StateUpdateResult update(JsonObject &root, ClosedLoopControllerMap &state) {
+        JsonArray jsonArray = root["controllers"].as<JsonArray>();
+        bool hasChanged = false;
+        for (int i = 0; i < min(jsonArray.size(), state.endpoints.size()); i++) {
+            state.endpoints[i] = jsonArray[i] | "";
+        }
+        return StateUpdateResult::CHANGED;
+    }
+};
+
+class MultiClosedLoopControllerService : public StatefulService<ClosedLoopControllerMap>
+{
+public:
+    MultiClosedLoopControllerService(EventSocket *socket,
+                                     FS *fs,
+                                     std::vector<ClosedLoopController*>& controllers);
+    void begin();
+    void loop();
+private:
+    EventEndpoint<ClosedLoopControllerMap> _eventEndpoint;
+    std::vector<ClosedLoopController*>& _controllers;
+    std::vector<ClosedLoopControllerStateService> _stateServices;
+    std::vector<ClosedLoopControllerSettingsService> _settingsServices;
 };
 #endif

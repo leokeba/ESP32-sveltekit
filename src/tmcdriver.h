@@ -38,7 +38,7 @@ struct TMC5160Controller {
 
         Serial.print("DRV_STATUS=0b");
         Serial.println(driver.DRV_STATUS(), BIN);
-        initDriver();
+        // initDriver();
 
         stepper = engine.stepperConnectToPin(STEP);
         if (stepper) {

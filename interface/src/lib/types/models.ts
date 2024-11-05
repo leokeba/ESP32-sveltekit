@@ -181,7 +181,6 @@ export type StepperControl = {
 	acceleration: number;
 	status: number;
 	version: number;
-	socketConnected: boolean;
 };
 
 export type MultiStepperControl = {
