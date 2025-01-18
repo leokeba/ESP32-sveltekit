@@ -28,6 +28,8 @@ PsychicHttpServer server;
 ESP32SvelteKit esp32sveltekit(&server, 120);
 
 FastAccelStepperEngine engine = FastAccelStepperEngine();
+LightMqttSettingsService lightMqttSettingsService = LightMqttSettingsService(&server,
+                                                                             &esp32sveltekit);
 
 TMC5160Stepper driver1(10, R_SENSE, 13, 11, 12);
 TMC5160Stepper driver2(7, R_SENSE, 13, 11, 12);
@@ -43,19 +45,6 @@ ClosedLoopController closedLoopController2 = {stepper2, encoder2};
 
 std::vector<TMC5160Controller*> steppers = {&stepper1, &stepper2};
 std::vector<ClosedLoopController*> closedLoopControllers = {&closedLoopController1, &closedLoopController2};
-
-LightMqttSettingsService lightMqttSettingsService = LightMqttSettingsService(
-    &server,
-    esp32sveltekit.getFS(),
-    esp32sveltekit.getSecurityManager());
-
-LightStateService lightStateService = LightStateService(
-    &server,
-    esp32sveltekit.getSocket(),
-    esp32sveltekit.getSecurityManager(),
-    esp32sveltekit.getMqttClient(),
-    &lightMqttSettingsService,
-    esp32sveltekit.getFeatureService());
 
 StepperSettingsService stepperSettingsService = StepperSettingsService(
     esp32sveltekit.getSocket(),
@@ -90,6 +79,10 @@ ClosedLoopControllerSettingsService closedLoopControllerService = ClosedLoopCont
     esp32sveltekit.getSocket(),
     esp32sveltekit.getFS(),
     closedLoopControllers);
+    
+LightStateService lightStateService = LightStateService(&server,
+                                                        &esp32sveltekit,
+                                                        &lightMqttSettingsService);
 
 void setup()
 {
